@@ -8,7 +8,7 @@
 | Module Tutor Name  | Jonathan Shore                           |
 | Student ID Number  | P469808                                  |
 | Date of Submission | 30.01.2026                               |
-| Word Count         |                                          |
+| Word Count         | 2000                                     |
 
 - [x] *I confirm that this assignment is my own work. Where I have referred to academic sources, I have provided in-text citations and included the sources in
   the final reference list.*
