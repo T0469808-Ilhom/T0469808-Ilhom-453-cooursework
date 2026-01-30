@@ -169,6 +169,6 @@ The aim of this program is to create an interactive text-based “choose your ow
 
 - Save/load success/error messages
 
-## Algorithm ~~~~ going to so this later
+## Algorithm ~~~~ going to so this later hope
 
 ![](C:\Users\PC\Pictures\Screenshots\Screenshot%202026-01-30%20113915.png)
