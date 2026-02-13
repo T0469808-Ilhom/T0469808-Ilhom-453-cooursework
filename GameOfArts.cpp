@@ -3,10 +3,7 @@
 #include <string>
 #include <random>
 
-
-
 using namespace std;
-
 
 class Player {
 private:
@@ -97,22 +94,16 @@ public:
     }
 };
 
-
-class Scene {
-
-};
-
+class Scene { };
 
 class PuzzleScene {
-    public:
-
+public:
 };
 
+class CombatScene { };
 
-class CombatScene {
+class ItemScene { };
 
-};
-
-class ItemScene {
-
-};
+int main() {
+    return 0;
+}
