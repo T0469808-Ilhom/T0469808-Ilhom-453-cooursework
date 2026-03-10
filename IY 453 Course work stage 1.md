@@ -158,5 +158,5 @@ The aim of this program is to create an interactive text-based “choose your ow
 ![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_5.png)
 
 ![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_6.png)
-
+## Class Diagram:
 
