@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <random>
-// this is the code that i am having now
+#include <limits>
 using namespace std;
 
 
@@ -105,6 +105,45 @@ class CombatScene { };
 
 class ItemScene { };
 
+
 int main() {
-    return 0;
-}
+
+        int choice;
+
+        do {
+            cout << "\n--- RAVENSPIRE CASTLE ---\n";
+            cout << "1. Start Game\n";
+            cout << "2. Load Game\n";
+            cout << "3. Exit\n";
+            cout << "Enter your choice: ";
+            cin >> choice;
+
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                choice = 0;
+                cout << "Invalid input. Please enter a number.\n";
+            }
+            else if (choice < 1 || choice > 3) {
+                cout << "Invalid choice. Please enter 1, 2, or 3.\n";
+            }
+
+        } while (choice < 1 || choice > 3);
+
+        switch (choice) {
+            case 1:
+                cout << "Start Game selected.\n";
+                break;
+
+            case 2:
+                cout << "Load Game selected.\n";
+                break;
+
+            case 3:
+                cout << "Exiting game...\n";
+                break;
+        }
+
+        return 0;
+    }
+
