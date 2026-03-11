@@ -5,7 +5,6 @@
 #include <limits>
 using namespace std;
 
-
 class Player {
 private:
     string name;
