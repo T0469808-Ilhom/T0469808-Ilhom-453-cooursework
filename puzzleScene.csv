@@ -1,8 +1,0 @@
-scene_id,sub_type,description,choice_1,choice_2,next_scene_1,next_scene_2,correct_choice,damage_if_wrong,score_reward
-5,riddle,"A message on the wall asks: I speak without a mouth and hear without ears. What am I?","Echo","Shadow",6,6,1,1,5
-12,math,"A metal gate blocks your way. A note reads: 3 + 4 x 2 = ?","11","14",14,14,1,1,5
-15,anagram,"Letters scratched into the wall read: TEAG","GATE","GETA",17,17,1,1,5
-17,riddle,"A whisper asks: The more you take, the more you leave behind. What am I?","Footsteps","Stones",18,18,1,1,5
-21,math,"A carved stone slab asks: 5 x 3 - 4 = ?","11","15",22,22,1,1,5
-25,riddle,"A glowing vault door asks: I have keys but no locks. What am I?","Keyboard","Map",26,26,1,1,10
-34,riddle,"A final barrier asks: I have cities but no houses, rivers but no water, forests but no trees. What am I?","Map","Book",36,37,1,1,10

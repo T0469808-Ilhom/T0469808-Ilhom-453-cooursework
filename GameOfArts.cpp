@@ -3,6 +3,8 @@
 #include <string>
 #include <random>
 #include <limits>
+#include <fstream>
+
 using namespace std;
 
 class Player {
@@ -160,20 +162,139 @@ public:
         cout << "Score: " << score_ << "\n";
     }
 };
-class Scene { };
+
+struct StorySceneData {
+    int scene_id;
+    string description;
+    string choice_1;
+    string choice_2;
+    int next_scene_1;
+    int next_scene_2;
+};
+
+class SceneLoader {
+public:
+    vector<string> SplitCsvLine(const string& line) {
+        vector<string> fields;
+        string current_field;
+        bool inside_quotes = false;
+
+        for (char current_char : line) {
+            if (current_char == '"') {
+                inside_quotes = !inside_quotes;
+            }
+            else if (current_char == ',' && !inside_quotes) {
+                fields.push_back(current_field);
+                current_field.clear();
+            }
+            else {
+                current_field += current_char;
+            }
+        }
+
+        fields.push_back(current_field);
+        return fields;
+    }
+
+    vector<StorySceneData> LoadStoryScenes(const string& file_name) {
+        vector<StorySceneData> story_scenes;
+        ifstream file(file_name);
+        string line;
+
+        if (!file.is_open()) {
+            cout << "Error: could not open " << file_name << "\n";
+            return story_scenes;
+        }
+
+        getline(file, line);
+
+        while (getline(file, line)) {
+            vector<string> fields = SplitCsvLine(line);
+
+            if (fields.size() == 6) {
+                StorySceneData scene;
+                scene.scene_id = stoi(fields[0]);
+                scene.description = fields[1];
+                scene.choice_1 = fields[2];
+                scene.choice_2 = fields[3];
+                scene.next_scene_1 = stoi(fields[4]);
+                scene.next_scene_2 = stoi(fields[5]);
+
+                story_scenes.push_back(scene);
+            }
+        }
+
+        file.close();
+        return story_scenes;
+    }
+
+    StorySceneData GetStorySceneById(const vector<StorySceneData>& story_scenes, int scene_id) {
+        StorySceneData empty_scene;
+        empty_scene.scene_id = -1;
+
+        for (const StorySceneData& scene : story_scenes) {
+            if (scene.scene_id == scene_id) {
+                return scene;
+            }
+        }
+
+        return empty_scene;
+    }
+};
+
+class Game {
+private:
+    Player player_;
+    vector<StorySceneData> story_scenes_;
+    SceneLoader scene_loader_;
+
+public:
+    void StartGame() {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        string player_name;
+        cout << "Enter your name: ";
+        getline(cin, player_name);
+
+        player_.SetName(player_name);
+
+        cout << "\nWelcome to Ravenspire Castle, " << player_.GetName() << "!\n";
+        player_.ShowStats();
+
+        story_scenes_ = scene_loader_.LoadStoryScenes("scenes.csv");
+        StorySceneData first_scene = scene_loader_.GetStorySceneById(story_scenes_, 1);
+
+        if (first_scene.scene_id == -1) {
+            cout << "Error: first scene not found.\n";
+        }
+        else {
+            cout << "\n" << first_scene.description << "\n";
+            cout << "1. " << first_scene.choice_1 << "\n";
+            cout << "2. " << first_scene.choice_2 << "\n";
+        }
+    }
+
+    void LoadGame() {
+        cout << "Load Game selected.\n";
+    }
+};
+
+class Scene {
+};
 
 class PuzzleScene {
 public:
 };
 
-class CombatScene { };
+class CombatScene {
+};
 
-class ItemScene { };
-
+class ItemScene {
+};
 
 int main() {
     int choice;
-    Player player;
+    Game game;
 
     do {
         cout << "\n--- RAVENSPIRE CASTLE ---\n";
@@ -196,24 +317,13 @@ int main() {
     } while (choice < 1 || choice > 3);
 
     switch (choice) {
-        case 1: {
+        case 1:
             cout << "Start Game selected.\n";
-
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-            string player_name;
-            cout << "Enter your name: ";
-            getline(cin, player_name);
-
-            player.SetName(player_name);
-
-            cout << "\nWelcome to Ravenspire Castle, " << player.GetName() << "!\n";
-            player.ShowStats();
+            game.StartGame();
             break;
-        }
 
         case 2:
-            cout << "Load Game selected.\n";
+            game.LoadGame();
             break;
 
         case 3:
