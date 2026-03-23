@@ -27,7 +27,7 @@ public:
         score_ = 0;
     }
 
-    void SetName(const string& new_name) {
+    void SetName(string new_name) {
         name_ = new_name;
     }
 
@@ -103,7 +103,7 @@ public:
         inventory_.clear();
     }
 
-    void AddItem(const string& item_name, int hp_delta, int atk_delta, int def_delta, int score_delta) {
+    void AddItem(string item_name, int hp_delta, int atk_delta, int def_delta, int score_delta) {
         inventory_.push_back(item_name);
         health_ += hp_delta;
         attack_power_ += atk_delta;
@@ -129,14 +129,17 @@ public:
         }
     }
 
-    bool HasItem(const string& item_name) const {
-        for (const string& item : inventory_) {
-            if (item == item_name) {
-                return true;
+    bool HasItem(string item_name) {
+        int i;
+        bool found = false;
+
+        for (i = 0; i < inventory_.size(); i++) {
+            if (inventory_[i] == item_name) {
+                found = true;
             }
         }
 
-        return false;
+        return found;
     }
 
     void ShowInventory() const {
@@ -174,21 +177,22 @@ struct StorySceneData {
 
 class SceneLoader {
 public:
-    vector<string> SplitCsvLine(const string& line) {
+    vector<string> SplitCsvLine(string line) {
         vector<string> fields;
         string current_field;
         bool inside_quotes = false;
+        int i;
 
-        for (char current_char : line) {
-            if (current_char == '"') {
+        for (i = 0; i < line.length(); i++) {
+            if (line[i] == '"') {
                 inside_quotes = !inside_quotes;
             }
-            else if (current_char == ',' && !inside_quotes) {
+            else if (line[i] == ',' && inside_quotes == false) {
                 fields.push_back(current_field);
-                current_field.clear();
+                current_field = "";
             }
             else {
-                current_field += current_char;
+                current_field = current_field + line[i];
             }
         }
 
@@ -196,49 +200,51 @@ public:
         return fields;
     }
 
-    vector<StorySceneData> LoadStoryScenes(const string& file_name) {
+    vector<StorySceneData> LoadStoryScenes(string file_name) {
         vector<StorySceneData> story_scenes;
         ifstream file(file_name);
         string line;
 
         if (!file.is_open()) {
             cout << "Error: could not open " << file_name << "\n";
-            return story_scenes;
         }
+        else {
+            getline(file, line);
 
-        getline(file, line);
+            while (getline(file, line)) {
+                vector<string> fields = SplitCsvLine(line);
 
-        while (getline(file, line)) {
-            vector<string> fields = SplitCsvLine(line);
+                if (fields.size() == 6) {
+                    StorySceneData scene;
+                    scene.scene_id = stoi(fields[0]);
+                    scene.description = fields[1];
+                    scene.choice_1 = fields[2];
+                    scene.choice_2 = fields[3];
+                    scene.next_scene_1 = stoi(fields[4]);
+                    scene.next_scene_2 = stoi(fields[5]);
 
-            if (fields.size() == 6) {
-                StorySceneData scene;
-                scene.scene_id = stoi(fields[0]);
-                scene.description = fields[1];
-                scene.choice_1 = fields[2];
-                scene.choice_2 = fields[3];
-                scene.next_scene_1 = stoi(fields[4]);
-                scene.next_scene_2 = stoi(fields[5]);
-
-                story_scenes.push_back(scene);
+                    story_scenes.push_back(scene);
+                }
             }
+
+            file.close();
         }
 
-        file.close();
         return story_scenes;
     }
 
-    StorySceneData GetStorySceneById(const vector<StorySceneData>& story_scenes, int scene_id) {
-        StorySceneData empty_scene;
-        empty_scene.scene_id = -1;
+    StorySceneData GetStorySceneById(vector<StorySceneData> story_scenes, int scene_id) {
+        int i;
+        StorySceneData found_scene;
+        found_scene.scene_id = -1;
 
-        for (const StorySceneData& scene : story_scenes) {
-            if (scene.scene_id == scene_id) {
-                return scene;
+        for (i = 0; i < story_scenes.size(); i++) {
+            if (story_scenes[i].scene_id == scene_id) {
+                found_scene = story_scenes[i];
             }
         }
 
-        return empty_scene;
+        return found_scene;
     }
 };
 
@@ -279,8 +285,7 @@ public:
     }
 };
 
-class Scene {
-};
+class Scene { };
 
 class PuzzleScene {
 public:
