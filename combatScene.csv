@@ -1,7 +1,0 @@
-scene_id,description,choice_1,choice_2,next_scene_1,next_scene_2,enemy_name,enemy_power,enemy_damage
-8,"A sleepy prison guard sits near a weapon rack.","Sneak past","Attack the guard",9,9,"Prison Guard",5,2
-10,"A giant castle rat leaps from the shadows and attacks.","Fight the rat","Throw Bread to distract it",11,11,"Castle Rat",4,2
-18,"A skeleton guard rises from the floor and blocks the doorway.","Fight the skeleton","Hide behind a pillar",19,19,"Skeleton Guard",6,3
-24,"A shadow hound sees you in the grand hall and charges.","Fight the hound","Run",25,25,"Shadow Hound",8,3
-31,"A treasure guardian attacks the moment you step inside the room.","Fight the guardian","Escape immediately",32,32,"Treasure Guardian",10,4
-35,"Rushing forward triggers an ambush just before the gate.","Fight the ambush","Use your items",36,36,"Gate Ambush",9,4
