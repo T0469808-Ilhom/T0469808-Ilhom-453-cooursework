@@ -1,4 +1,4 @@
-# IY 453 Course work stage 1
+# IY 453 Course work stage
 
 | Assessment Details | Please Complete All Details              |
 | ------------------ | ---------------------------------------- |
