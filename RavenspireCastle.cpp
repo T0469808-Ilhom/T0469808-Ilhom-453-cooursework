@@ -3,6 +3,7 @@
 #include <string>
 #include <limits>
 #include <fstream>
+#include <cstdlib>
 
 using namespace std;
 
@@ -448,6 +449,160 @@ public:
     }
 };
 
+class Scene {
+protected:
+    int scene_id_;
+    string description_;
+
+    int GetValidChoice() {
+        int choice;
+        bool valid_choice = false;
+
+        while (!valid_choice) {
+            cout << "Enter your choice: ";
+            cin >> choice;
+
+            if (cin.fail()) {
+                cout << "Invalid input. Please enter a number.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            else if (choice < 1 || choice > 2) {
+                cout << "Invalid choice. Please enter 1 or 2.\n";
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            else {
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                valid_choice = true;
+            }
+        }
+
+        return choice;
+    }
+
+    string ReplacePlayerName(string text, Player* player) {
+        size_t position = text.find("{player_name}");
+
+        if (position != string::npos) {
+            text.replace(position, 13, player->GetName());
+        }
+
+        return text;
+    }
+
+public:
+    Scene(int scene_id, string description) {
+        scene_id_ = scene_id;
+        description_ = description;
+    }
+
+    int GetSceneId() const {
+        return scene_id_;
+    }
+
+    string GetDescription() const {
+        return description_;
+    }
+
+    virtual int Play(Player* player) = 0;
+};
+
+class StoryScene : public Scene {
+private:
+    string choice_1_;
+    string choice_2_;
+    int next_scene_1_;
+    int next_scene_2_;
+
+public:
+    StoryScene(StorySceneData data) : Scene(data.scene_id, data.description) {
+        choice_1_ = data.choice_1;
+        choice_2_ = data.choice_2;
+        next_scene_1_ = data.next_scene_1;
+        next_scene_2_ = data.next_scene_2;
+    }
+
+    int Play(Player* player) {
+        int choice;
+
+        cout << "\n" << ReplacePlayerName(description_, player) << "\n";
+        cout << "1. " << choice_1_ << "\n";
+        cout << "2. " << choice_2_ << "\n";
+
+        choice = GetValidChoice();
+
+        if (choice == 1) {
+            return next_scene_1_;
+        }
+        else {
+            return next_scene_2_;
+        }
+    }
+};
+
+class PuzzleScene : public Scene {
+private:
+    string sub_type_;
+    string choice_1_;
+    string choice_2_;
+    int next_scene_1_;
+    int next_scene_2_;
+    int correct_choice_;
+    int damage_if_wrong_;
+    int score_reward_;
+
+public:
+    PuzzleScene(PuzzleSceneData data) : Scene(data.scene_id, data.description) {
+        sub_type_ = data.sub_type;
+        choice_1_ = data.choice_1;
+        choice_2_ = data.choice_2;
+        next_scene_1_ = data.next_scene_1;
+        next_scene_2_ = data.next_scene_2;
+        correct_choice_ = data.correct_choice;
+        damage_if_wrong_ = data.damage_if_wrong;
+        score_reward_ = data.score_reward;
+    }
+
+    int Play(Player* player) {
+        int choice;
+        int next_scene_id;
+
+        cout << "\n--- Puzzle Scene ---\n";
+        cout << "Type: " << sub_type_ << "\n";
+        cout << ReplacePlayerName(description_, player) << "\n";
+        cout << "1. " << choice_1_ << "\n";
+        cout << "2. " << choice_2_ << "\n";
+
+        choice = GetValidChoice();
+
+        if (choice == correct_choice_) {
+            cout << "Correct answer.\n";
+            player->AddScore(score_reward_);
+        }
+        else {
+            cout << "Wrong answer. You lose " << damage_if_wrong_ << " health.\n";
+            player->ChangeHealth(-damage_if_wrong_);
+        }
+
+        if (choice == 1) {
+            next_scene_id = next_scene_1_;
+        }
+        else {
+            next_scene_id = next_scene_2_;
+        }
+
+        return next_scene_id;
+    }
+};
+
+class CombatScene : public Scene {
+
+};
+
+class ItemScene : public Scene {
+
+};
+
 class Game {
 private:
     Player player_;
@@ -490,10 +645,16 @@ private:
 public:
     void StartGame() {
         string player_name;
+        StorySceneData first_scene;
 
         cout << "Enter your name: ";
         getline(cin, player_name);
 
+        if (player_name == "") {
+            player_name = "Player";
+        }
+
+        player_.ResetAll();
         player_.SetName(player_name);
 
         story_scenes_ = scene_loader_.LoadStoryScenes("scenes.csv");
@@ -504,15 +665,16 @@ public:
         cout << "\nWelcome to Ravenspire Castle, " << player_.GetName() << "!\n";
         player_.ShowStats();
 
-        StorySceneData first_scene = scene_loader_.GetStorySceneById(story_scenes_, 1);
+        first_scene = scene_loader_.GetStorySceneById(story_scenes_, 1);
 
         if (first_scene.scene_id == -1) {
             cout << "Error: first scene not found.\n";
         }
         else {
-            cout << "\n" << first_scene.description << "\n";
-            cout << "1. " << first_scene.choice_1 << "\n";
-            cout << "2. " << first_scene.choice_2 << "\n";
+            StoryScene story_scene(first_scene);
+            int next_scene_id = story_scene.Play(&player_);
+
+            cout << "Next scene id: " << next_scene_id << "\n";
         }
     }
 
@@ -538,18 +700,6 @@ public:
                 break;
         }
     }
-};
-
-class Scene {
-};
-
-class PuzzleScene {
-};
-
-class CombatScene {
-};
-
-class ItemScene {
 };
 
 int main() {
