@@ -596,11 +596,135 @@ public:
 };
 
 class CombatScene : public Scene {
+private:
+    string choice_1_;
+    string choice_2_;
+    int next_scene_1_;
+    int next_scene_2_;
+    string enemy_name_;
+    int enemy_power_;
+    int enemy_damage_;
 
+public:
+    CombatScene(CombatSceneData data) : Scene(data.scene_id, data.description) {
+        choice_1_ = data.choice_1;
+        choice_2_ = data.choice_2;
+        next_scene_1_ = data.next_scene_1;
+        next_scene_2_ = data.next_scene_2;
+        enemy_name_ = data.enemy_name;
+        enemy_power_ = data.enemy_power;
+        enemy_damage_ = data.enemy_damage;
+    }
+
+    int Play(Player* player) {
+        int choice;
+        int player_roll;
+        int enemy_roll;
+        int player_total;
+        int enemy_total;
+
+        cout << "\n--- Combat Scene ---\n";
+        cout << ReplacePlayerName(description_, player) << "\n";
+        cout << "Enemy: " << enemy_name_ << "\n";
+        cout << "1. " << choice_1_ << "\n";
+        cout << "2. " << choice_2_ << "\n";
+
+        choice = GetValidChoice();
+
+        if (choice == 1) {
+            cout << "You chose: " << choice_1_ << "\n";
+        }
+        else {
+            cout << "You chose: " << choice_2_ << "\n";
+        }
+
+        player_roll = rand() % 6 + 1;
+        enemy_roll = rand() % 6 + 1;
+
+        player_total = player->GetAttackPower() + player->GetDefense() + player_roll;
+        enemy_total = enemy_power_ + enemy_roll;
+
+        cout << player->GetName() << " total: " << player_total << "\n";
+        cout << enemy_name_ << " total: " << enemy_total << "\n";
+
+        if (player_total >= enemy_total) {
+            cout << "You defeated " << enemy_name_ << ".\n";
+            player->AddScore(10);
+            return next_scene_1_;
+        }
+        else {
+            cout << "You were hit by " << enemy_name_ << ".\n";
+            player->ChangeHealth(-enemy_damage_);
+
+            if (player->GetHealth() <= 0) {
+                player->LoseLife();
+
+                if (player->GetLives() > 0) {
+                    cout << "You lost a life.\n";
+                    player->ResetForNewLife();
+                }
+                else {
+                    cout << "You have no lives left.\n";
+                    return -1;
+                }
+            }
+
+            return next_scene_2_;
+        }
+    }
 };
 
 class ItemScene : public Scene {
+private:
+    string choice_1_;
+    string choice_2_;
+    int next_scene_1_;
+    int next_scene_2_;
+    string item_name_;
+    int health_bonus_;
+    int attack_bonus_;
+    int defense_bonus_;
+    int score_bonus_;
+    string unlock_tag_;
 
+public:
+    ItemScene(ItemSceneData data) : Scene(data.scene_id, data.description) {
+        choice_1_ = data.choice_1;
+        choice_2_ = data.choice_2;
+        next_scene_1_ = data.next_scene_1;
+        next_scene_2_ = data.next_scene_2;
+        item_name_ = data.item_name;
+        health_bonus_ = data.health_bonus;
+        attack_bonus_ = data.attack_bonus;
+        defense_bonus_ = data.defense_bonus;
+        score_bonus_ = data.score_bonus;
+        unlock_tag_ = data.unlock_tag;
+    }
+
+    int Play(Player* player) {
+        int choice;
+
+        cout << "\n--- Item Scene ---\n";
+        cout << ReplacePlayerName(description_, player) << "\n";
+        cout << "1. " << choice_1_ << "\n";
+        cout << "2. " << choice_2_ << "\n";
+
+        choice = GetValidChoice();
+
+        if (choice == 1) {
+            player->AddItem(item_name_, health_bonus_, attack_bonus_, defense_bonus_, score_bonus_);
+        }
+        else {
+            cout << "You left the item behind.\n";
+        }
+
+        if (choice == 1) {
+            return next_scene_1_;
+        }
+        else {
+            return next_scene_2_;
+        }
+    }
 };
 
 class Game {
