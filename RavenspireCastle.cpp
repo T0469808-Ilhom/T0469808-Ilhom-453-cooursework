@@ -7,6 +7,10 @@
 
 using namespace std;
 
+
+/* ============================================================
+   Player — stores all player state: stats, inventory, score
+   ============================================================ */
 class Player {
 private:
     string name_;
@@ -27,10 +31,32 @@ public:
         score_ = 0;
     }
 
-    void SetName(string new_name) {
+    /* Setters — clamp values to 0 to prevent negative stats */
+    void SetName(const string& new_name) {
         name_ = new_name;
     }
 
+    void SetHealth(int value) {
+        health_ = (value < 0) ? 0 : value;
+    }
+
+    void SetLives(int value) {
+        lives_ = (value < 0) ? 0 : value;
+    }
+
+    void SetAttackPower(int value) {
+        attack_power_ = (value < 0) ? 0 : value;
+    }
+
+    void SetDefense(int value) {
+        defense_ = (value < 0) ? 0 : value;
+    }
+
+    void SetScore(int value) {
+        score_ = (value < 0) ? 0 : value;
+    }
+
+    /* Getters */
     string GetName() const {
         return name_;
     }
@@ -55,32 +81,27 @@ public:
         return score_;
     }
 
-    void AddScore(int amount) {
-        score_ += amount;
+    vector<string> GetInventory() const {
+        return inventory_;
     }
 
+    /* Applies a relative change to health using the clamping setter */
     void ChangeHealth(int amount) {
-        health_ += amount;
-
-        if (health_ < 0) {
-            health_ = 0;
-        }
+        SetHealth(health_ + amount);
     }
 
+    /* Applies a relative change to attack power using the clamping setter */
     void ChangeAttackPower(int amount) {
-        attack_power_ += amount;
-
-        if (attack_power_ < 0) {
-            attack_power_ = 0;
-        }
+        SetAttackPower(attack_power_ + amount);
     }
 
+    /* Applies a relative change to defense using the clamping setter */
     void ChangeDefense(int amount) {
-        defense_ += amount;
+        SetDefense(defense_ + amount);
+    }
 
-        if (defense_ < 0) {
-            defense_ = 0;
-        }
+    void AddScore(int amount) {
+        SetScore(score_ + amount);
     }
 
     void LoseLife() {
@@ -89,6 +110,7 @@ public:
         }
     }
 
+    /* Restores health to full after losing a life */
     void ResetForNewLife() {
         health_ = 10;
     }
@@ -103,25 +125,24 @@ public:
         inventory_.clear();
     }
 
-    void AddItem(string item_name, int hp_delta, int atk_delta, int def_delta, int score_delta) {
+    void ClearInventory() {
+        inventory_.clear();
+    }
+
+    /* Adds a single item name to inventory without applying stat effects */
+    void AddInventoryItem(const string& item_name) {
+        inventory_.push_back(item_name);
+    }
+
+    /* Adds item to inventory and immediately applies all its stat bonuses */
+    void AddItem(const string& item_name, int hp_delta, int atk_delta,
+                 int def_delta, int score_delta) {
         inventory_.push_back(item_name);
 
-        health_ += hp_delta;
-        attack_power_ += atk_delta;
-        defense_ += def_delta;
-        score_ += score_delta;
-
-        if (health_ < 0) {
-            health_ = 0;
-        }
-
-        if (attack_power_ < 0) {
-            attack_power_ = 0;
-        }
-
-        if (defense_ < 0) {
-            defense_ = 0;
-        }
+        ChangeHealth(hp_delta);
+        ChangeAttackPower(atk_delta);
+        ChangeDefense(def_delta);
+        AddScore(score_delta);
 
         cout << "You obtained: " << item_name << "\n";
 
@@ -142,11 +163,12 @@ public:
         }
     }
 
-    bool HasItem(string item_name) {
+    /* const because it only reads inventory, never modifies it */
+    bool HasItem(const string& item_name) const {
         bool found = false;
 
-        for (int i = 0; i < inventory_.size(); i++) {
-            if (inventory_[i] == item_name) {
+        for (const string& item : inventory_) {
+            if (item == item_name) {
                 found = true;
             }
         }
@@ -159,24 +181,24 @@ public:
 
         if (inventory_.empty()) {
             cout << "Inventory is empty.\n";
-        }
-        else {
-            for (int i = 0; i < inventory_.size(); i++) {
-                cout << "- " << inventory_[i] << "\n";
+        } else {
+            for (const string& item : inventory_) {
+                cout << "- " << item << "\n";
             }
         }
     }
 
     void ShowStats() const {
         cout << "\n--- Player Stats ---\n";
-        cout << "Name: " << name_ << "\n";
-        cout << "Health: " << health_ << "\n";
-        cout << "Lives: " << lives_ << "\n";
+        cout << "Name:         " << name_         << "\n";
+        cout << "Health:       " << health_       << "\n";
+        cout << "Lives:        " << lives_        << "\n";
         cout << "Attack Power: " << attack_power_ << "\n";
-        cout << "Defense: " << defense_ << "\n";
-        cout << "Score: " << score_ << "\n";
+        cout << "Defense:      " << defense_      << "\n";
+        cout << "Score:        " << score_        << "\n";
     }
 };
+
 
 struct StorySceneData {
     int scene_id;
@@ -454,7 +476,9 @@ protected:
     int scene_id_;
     string description_;
 
-    int GetValidChoice() {
+    /* Loops until the player enters a valid integer between min and max.
+   Centralised here so all scene types share the same validation logic (DRY). */
+    int GetValidChoice(int min, int max) {
         int choice;
         bool valid_choice = false;
 
@@ -467,8 +491,8 @@ protected:
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
-            else if (choice < 1 || choice > 2) {
-                cout << "Invalid choice. Please enter 1 or 2.\n";
+            else if (choice < min || choice > max) {
+                cout << "Invalid choice. Please enter " << min << " or " << max << ".\n";
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
             else {
@@ -529,7 +553,7 @@ public:
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
-        choice = GetValidChoice();
+        choice = GetValidChoice(1, 2);
 
         if (choice == 1) {
             return next_scene_1_;
@@ -573,7 +597,7 @@ public:
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
-        choice = GetValidChoice();
+        choice = GetValidChoice(1, 2);
 
         if (choice == correct_choice_) {
             cout << "Correct answer.\n";
@@ -629,7 +653,7 @@ public:
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
-        choice = GetValidChoice();
+        choice = GetValidChoice(1, 2);
 
         if (choice == 1) {
             cout << "You chose: " << choice_1_ << "\n";
@@ -709,7 +733,7 @@ public:
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
-        choice = GetValidChoice();
+        choice = GetValidChoice(1, 2);
 
         if (choice == 1) {
             player->AddItem(item_name_, health_bonus_, attack_bonus_, defense_bonus_, score_bonus_);
@@ -735,16 +759,16 @@ private:
     vector<CombatSceneData> combat_scenes_;
     vector<ItemSceneData> item_scenes_;
     SceneLoader scene_loader_;
+    int current_scene_id_;
+    int scene_counter_;
 
-    int GetValidMenuChoice() {
+    /* Loops until the player enters a valid integer between min and max.
+   Centralised here so all scene types share the same validation logic (DRY). */
+    int GetValidChoice(int min, int max) {
         int choice;
         bool valid_choice = false;
 
         while (!valid_choice) {
-            cout << "\n--- RAVENSPIRE CASTLE ---\n";
-            cout << "1. Start Game\n";
-            cout << "2. Load Game\n";
-            cout << "3. Exit\n";
             cout << "Enter your choice: ";
             cin >> choice;
 
@@ -753,8 +777,8 @@ private:
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
-            else if (choice < 1 || choice > 3) {
-                cout << "Invalid choice. Please enter 1, 2, or 3.\n";
+            else if (choice < min || choice > max) {
+                cout << "Invalid choice. Please enter " << min << " or " << max << ".\n";
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
             else {
@@ -766,10 +790,212 @@ private:
         return choice;
     }
 
+
+    bool IsEndingScene(int scene_id) {
+        if (scene_id == 41 || scene_id == 42 || scene_id == 43) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    void LoadAllScenes() {
+        story_scenes_ = scene_loader_.LoadStoryScenes("scenes.csv");
+        puzzle_scenes_ = scene_loader_.LoadPuzzleScenes("puzzleScene.csv");
+        combat_scenes_ = scene_loader_.LoadCombatScenes("combatScene.csv");
+        item_scenes_ = scene_loader_.LoadItemScenes("itemScene.csv");
+    }
+
+    void SaveGame() {
+    }
+
+    bool LoadSaveFile() {
+        ifstream file("savegame.csv");
+        string line;
+        vector<string> stats;
+        int item_count;
+
+        if (!file.is_open()) {
+            cout << "Error: could not open savegame.csv\n";
+            return false;
+        }
+
+        getline(file, line);
+        if (line == "") {
+            cout << "Error: save file is empty.\n";
+            file.close();
+            return false;
+        }
+
+        player_.ResetAll();
+        player_.SetName(line);
+
+        getline(file, line);
+        if (line == "") {
+            cout << "Error: save file is incomplete.\n";
+            file.close();
+            return false;
+        }
+        current_scene_id_ = stoi(line);
+
+        getline(file, line);
+        if (line == "") {
+            cout << "Error: save file is incomplete.\n";
+            file.close();
+            return false;
+        }
+
+        stats = scene_loader_.SplitCsvLine(line);
+
+        if (stats.size() != 5) {
+            cout << "Error: save file data is invalid.\n";
+            file.close();
+            return false;
+        }
+
+        player_.SetHealth(stoi(stats[0]));
+        player_.SetLives(stoi(stats[1]));
+        player_.SetAttackPower(stoi(stats[2]));
+        player_.SetDefense(stoi(stats[3]));
+        player_.SetScore(stoi(stats[4]));
+
+        getline(file, line);
+        if (line == "") {
+            cout << "Error: save file is incomplete.\n";
+            file.close();
+            return false;
+        }
+
+        item_count = stoi(line);
+        player_.ClearInventory();
+
+        for (int i = 0; i < item_count; i++) {
+            getline(file, line);
+            player_.AddInventoryItem(line);
+        }
+
+        file.close();
+        return true;
+    }
+
+    bool PlayCurrentScene() {
+        StorySceneData story_scene_data;
+        PuzzleSceneData puzzle_scene_data;
+        CombatSceneData combat_scene_data;
+        ItemSceneData item_scene_data;
+
+        story_scene_data = scene_loader_.GetStorySceneById(story_scenes_, current_scene_id_);
+
+        if (story_scene_data.scene_id != -1) {
+            StoryScene story_scene(story_scene_data);
+            current_scene_id_ = story_scene.Play(&player_);
+            return true;
+        }
+
+        puzzle_scene_data = scene_loader_.GetPuzzleSceneById(puzzle_scenes_, current_scene_id_);
+
+        if (puzzle_scene_data.scene_id != -1) {
+            PuzzleScene puzzle_scene(puzzle_scene_data);
+            current_scene_id_ = puzzle_scene.Play(&player_);
+            return true;
+        }
+
+        combat_scene_data = scene_loader_.GetCombatSceneById(combat_scenes_, current_scene_id_);
+
+        if (combat_scene_data.scene_id != -1) {
+            CombatScene combat_scene(combat_scene_data);
+            current_scene_id_ = combat_scene.Play(&player_);
+            return true;
+        }
+
+        item_scene_data = scene_loader_.GetItemSceneById(item_scenes_, current_scene_id_);
+
+        if (item_scene_data.scene_id != -1) {
+            ItemScene item_scene(item_scene_data);
+            current_scene_id_ = item_scene.Play(&player_);
+            return true;
+        }
+
+        cout << "\nScene " << current_scene_id_ << " was not found.\n";
+        return false;
+    }
+
+    void ShowFinalScoreIfNeeded(int previous_scene_id) {
+        if (IsEndingScene(previous_scene_id)) {
+            cout << "\n--- Final Score ---\n";
+            cout << player_.GetName() << ", your final score is: " << player_.GetScore() << "\n";
+        }
+    }
+
+
+    bool AskToSave() {
+
+    }
+
+    bool HandleSceneResult(int previous_scene_id) {
+        if (current_scene_id_ == -1) {
+            cout << "\nGame Over.\n";
+            return false;
+        }
+
+        if (current_scene_id_ == -3) {
+            cout << "\nExiting game...\n";
+            return false;
+        }
+
+        if (current_scene_id_ == 1 && IsEndingScene(previous_scene_id)) {
+            string player_name = player_.GetName();
+
+            player_.ResetAll();
+            player_.SetName(player_name);
+            current_scene_id_ = 1;
+            scene_counter_ = 0;
+
+            cout << "\nStarting a new game...\n";
+            player_.ShowStats();
+            return true;
+        }
+
+        player_.ShowStats();
+
+        if (scene_counter_ > 0 && scene_counter_ % 5 == 0) {
+            if (AskToSave()) {
+                cout << "\nReturning to Main Menu...\n";
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void PlayGame() {
+        int previous_scene_id;
+        bool game_running = true;
+        bool scene_played;
+
+        while (game_running) {
+            previous_scene_id = current_scene_id_;
+            scene_played = PlayCurrentScene();
+
+            if (!scene_played) {
+                game_running = false;
+            }
+            else {
+                scene_counter_++;
+                ShowFinalScoreIfNeeded(previous_scene_id);
+                game_running = HandleSceneResult(previous_scene_id);
+            }
+        }
+    }
 public:
+    Game() {
+        current_scene_id_ = 1;
+        scene_counter_ = 0;
+    }
+
     void StartGame() {
         string player_name;
-        StorySceneData first_scene;
 
         cout << "Enter your name: ";
         getline(cin, player_name);
@@ -780,48 +1006,43 @@ public:
 
         player_.ResetAll();
         player_.SetName(player_name);
+        current_scene_id_ = 1;
+        scene_counter_ = 0;
 
-        story_scenes_ = scene_loader_.LoadStoryScenes("scenes.csv");
-        puzzle_scenes_ = scene_loader_.LoadPuzzleScenes("puzzleScene.csv");
-        combat_scenes_ = scene_loader_.LoadCombatScenes("combatScene.csv");
-        item_scenes_ = scene_loader_.LoadItemScenes("itemScene.csv");
+        LoadAllScenes();
 
         cout << "\nWelcome to Ravenspire Castle, " << player_.GetName() << "!\n";
         player_.ShowStats();
 
-        first_scene = scene_loader_.GetStorySceneById(story_scenes_, 1);
-
-        if (first_scene.scene_id == -1) {
-            cout << "Error: first scene not found.\n";
-        }
-        else {
-            StoryScene story_scene(first_scene);
-            int next_scene_id = story_scene.Play(&player_);
-
-            cout << "Next scene id: " << next_scene_id << "\n";
-        }
+        PlayGame();
     }
 
     void LoadGame() {
-        cout << "Load Game selected.\n";
+        cout << "Load Game - coming soon.\n";
     }
 
     void Run() {
-        int choice = GetValidMenuChoice();
+        int choice;
+        bool running = true;
 
-        switch (choice) {
-            case 1:
-                cout << "Start Game selected.\n";
-                StartGame();
-                break;
+        while (running) {
+            choice = GetValidChoice(1, 3);
 
-            case 2:
-                LoadGame();
-                break;
+            switch (choice) {
+                case 1:
+                    cout << "Start Game selected.\n";
+                    StartGame();
+                    break;
 
-            case 3:
-                cout << "Exiting game...\n";
-                break;
+                case 2:
+                    LoadGame();
+                    break;
+
+                case 3:
+                    cout << "Exiting game...\n";
+                    running = false;
+                    break;
+            }
         }
     }
 };
