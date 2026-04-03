@@ -8,9 +8,7 @@
 using namespace std;
 
 
-/* ============================================================
-   Player — stores all player state: stats, inventory, score
-   ============================================================ */
+
 class Player {
 private:
     string name_;
@@ -548,6 +546,7 @@ public:
 
     int Play(Player* player) {
         int choice;
+        int next_scene_id;
 
         cout << "\n" << ReplacePlayerName(description_, player) << "\n";
         cout << "1. " << choice_1_ << "\n";
@@ -556,11 +555,13 @@ public:
         choice = GetValidChoice(1, 2);
 
         if (choice == 1) {
-            return next_scene_1_;
+            next_scene_id = next_scene_1_;
         }
         else {
-            return next_scene_2_;
+            next_scene_id = next_scene_2_;
         }
+
+        return next_scene_id;
     }
 };
 
@@ -646,6 +647,7 @@ public:
         int enemy_roll;
         int player_total;
         int enemy_total;
+        int next_scene_id;
 
         cout << "\n--- Combat Scene ---\n";
         cout << ReplacePlayerName(description_, player) << "\n";
@@ -674,27 +676,28 @@ public:
         if (player_total >= enemy_total) {
             cout << "You defeated " << enemy_name_ << ".\n";
             player->AddScore(10);
-            return next_scene_1_;
+            next_scene_id = next_scene_1_;
         }
         else {
             cout << "You were hit by " << enemy_name_ << ".\n";
             player->ChangeHealth(-enemy_damage_);
+            next_scene_id = next_scene_2_;
 
             if (player->GetHealth() <= 0) {
                 player->LoseLife();
 
-                if (player->GetLives() > 0) {
+                if (player->GetLives() <= 0) {
+                    cout << "You have no lives left.\n";
+                    next_scene_id = -1;
+                }
+                else {
                     cout << "You lost a life.\n";
                     player->ResetForNewLife();
                 }
-                else {
-                    cout << "You have no lives left.\n";
-                    return -1;
-                }
             }
-
-            return next_scene_2_;
         }
+
+        return next_scene_id;
     }
 };
 
@@ -727,8 +730,17 @@ public:
 
     int Play(Player* player) {
         int choice;
+        int next_scene_id;
 
         cout << "\n--- Item Scene ---\n";
+
+        // Check if the player carries the required item for this scene.
+        // Reward them with bonus score for being prepared.
+        if (unlock_tag_ != "" && player->HasItem(unlock_tag_)) {
+            cout << "Your " << unlock_tag_ << " reacts to this place. Bonus score!\n";
+            player->AddScore(5);
+        }
+
         cout << ReplacePlayerName(description_, player) << "\n";
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
@@ -737,17 +749,14 @@ public:
 
         if (choice == 1) {
             player->AddItem(item_name_, health_bonus_, attack_bonus_, defense_bonus_, score_bonus_);
+            next_scene_id = next_scene_1_;
         }
         else {
             cout << "You left the item behind.\n";
+            next_scene_id = next_scene_2_;
         }
 
-        if (choice == 1) {
-            return next_scene_1_;
-        }
-        else {
-            return next_scene_2_;
-        }
+        return next_scene_id;
     }
 };
 
@@ -762,8 +771,8 @@ private:
     int current_scene_id_;
     int scene_counter_;
 
-    /* Loops until the player enters a valid integer between min and max.
-   Centralised here so all scene types share the same validation logic (DRY). */
+    //Loops until the player enters a valid integer between min and max.
+    //Centralised here so all scene types share the same validation logic.
     int GetValidChoice(int min, int max) {
         int choice;
         bool valid_choice = false;
@@ -792,12 +801,8 @@ private:
 
 
     bool IsEndingScene(int scene_id) {
-        if (scene_id == 41 || scene_id == 42 || scene_id == 43) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        bool is_ending = (scene_id == 41 || scene_id == 42 || scene_id == 43);
+        return is_ending;
     }
 
     void LoadAllScenes() {
@@ -808,6 +813,31 @@ private:
     }
 
     void SaveGame() {
+        ofstream file("savegame.csv");
+        vector<string> inventory;
+
+        if (!file.is_open()) {
+            cout << "Error: could not save the game.\n";
+        }
+        else {
+            file << player_.GetName() << "\n";
+            file << current_scene_id_ << "\n";
+            file << player_.GetHealth() << ","
+                 << player_.GetLives() << ","
+                 << player_.GetAttackPower() << ","
+                 << player_.GetDefense() << ","
+                 << player_.GetScore() << "\n";
+
+            inventory = player_.GetInventory();
+            file << inventory.size() << "\n";
+
+            for (int i = 0; i < inventory.size(); i++) {
+                file << inventory[i] << "\n";
+            }
+
+            file.close();
+            cout << "Game saved successfully.\n";
+        }
     }
 
     bool LoadSaveFile() {
@@ -815,110 +845,85 @@ private:
         string line;
         vector<string> stats;
         int item_count;
+        bool loaded = false;
 
         if (!file.is_open()) {
             cout << "Error: could not open savegame.csv\n";
-            return false;
         }
-
-        getline(file, line);
-        if (line == "") {
-            cout << "Error: save file is empty.\n";
-            file.close();
-            return false;
-        }
-
-        player_.ResetAll();
-        player_.SetName(line);
-
-        getline(file, line);
-        if (line == "") {
-            cout << "Error: save file is incomplete.\n";
-            file.close();
-            return false;
-        }
-        current_scene_id_ = stoi(line);
-
-        getline(file, line);
-        if (line == "") {
-            cout << "Error: save file is incomplete.\n";
-            file.close();
-            return false;
-        }
-
-        stats = scene_loader_.SplitCsvLine(line);
-
-        if (stats.size() != 5) {
-            cout << "Error: save file data is invalid.\n";
-            file.close();
-            return false;
-        }
-
-        player_.SetHealth(stoi(stats[0]));
-        player_.SetLives(stoi(stats[1]));
-        player_.SetAttackPower(stoi(stats[2]));
-        player_.SetDefense(stoi(stats[3]));
-        player_.SetScore(stoi(stats[4]));
-
-        getline(file, line);
-        if (line == "") {
-            cout << "Error: save file is incomplete.\n";
-            file.close();
-            return false;
-        }
-
-        item_count = stoi(line);
-        player_.ClearInventory();
-
-        for (int i = 0; i < item_count; i++) {
+        else {
             getline(file, line);
-            player_.AddInventoryItem(line);
+
+            if (line == "") {
+                cout << "Error: save file is empty.\n";
+            }
+            else {
+                player_.ResetAll();
+                player_.SetName(line);
+
+                getline(file, line);
+                current_scene_id_ = stoi(line);
+
+                getline(file, line);
+                stats = scene_loader_.SplitCsvLine(line);
+
+                if (stats.size() != 5) {
+                    cout << "Error: save file data is invalid.\n";
+                }
+                else {
+                    player_.SetHealth(stoi(stats[0]));
+                    player_.SetLives(stoi(stats[1]));
+                    player_.SetAttackPower(stoi(stats[2]));
+                    player_.SetDefense(stoi(stats[3]));
+                    player_.SetScore(stoi(stats[4]));
+
+                    getline(file, line);
+                    item_count = stoi(line);
+                    player_.ClearInventory();
+
+                    for (int i = 0; i < item_count; i++) {
+                        getline(file, line);
+                        player_.AddInventoryItem(line);
+                    }
+
+                    loaded = true;
+                }
+            }
+
+            file.close();
         }
 
-        file.close();
-        return true;
+        return loaded;
     }
 
     bool PlayCurrentScene() {
-        StorySceneData story_scene_data;
-        PuzzleSceneData puzzle_scene_data;
-        CombatSceneData combat_scene_data;
-        ItemSceneData item_scene_data;
+        StorySceneData story_data = scene_loader_.GetStorySceneById(story_scenes_, current_scene_id_);
+        PuzzleSceneData puzzle_data = scene_loader_.GetPuzzleSceneById(puzzle_scenes_, current_scene_id_);
+        CombatSceneData combat_data = scene_loader_.GetCombatSceneById(combat_scenes_, current_scene_id_);
+        ItemSceneData item_data = scene_loader_.GetItemSceneById(item_scenes_, current_scene_id_);
+        bool scene_found = true;
 
-        story_scene_data = scene_loader_.GetStorySceneById(story_scenes_, current_scene_id_);
-
-        if (story_scene_data.scene_id != -1) {
-            StoryScene story_scene(story_scene_data);
-            current_scene_id_ = story_scene.Play(&player_);
-            return true;
+        if (story_data.scene_id != -1) {
+            StoryScene scene(story_data);
+            current_scene_id_ = scene.Play(&player_);
+        }
+        else if (puzzle_data.scene_id != -1) {
+            PuzzleScene scene(puzzle_data);
+            current_scene_id_ = scene.Play(&player_);
+        }
+        else if (combat_data.scene_id != -1) {
+            CombatScene scene(combat_data);
+            current_scene_id_ = scene.Play(&player_);
+        }
+        else if (item_data.scene_id != -1) {
+            ItemScene scene(item_data);
+            current_scene_id_ = scene.Play(&player_);
+        }
+        else {
+            cout << "\nScene " << current_scene_id_ << " was not found.\n";
+            scene_found = false;
         }
 
-        puzzle_scene_data = scene_loader_.GetPuzzleSceneById(puzzle_scenes_, current_scene_id_);
-
-        if (puzzle_scene_data.scene_id != -1) {
-            PuzzleScene puzzle_scene(puzzle_scene_data);
-            current_scene_id_ = puzzle_scene.Play(&player_);
-            return true;
-        }
-
-        combat_scene_data = scene_loader_.GetCombatSceneById(combat_scenes_, current_scene_id_);
-
-        if (combat_scene_data.scene_id != -1) {
-            CombatScene combat_scene(combat_scene_data);
-            current_scene_id_ = combat_scene.Play(&player_);
-            return true;
-        }
-
-        item_scene_data = scene_loader_.GetItemSceneById(item_scenes_, current_scene_id_);
-
-        if (item_scene_data.scene_id != -1) {
-            ItemScene item_scene(item_scene_data);
-            current_scene_id_ = item_scene.Play(&player_);
-            return true;
-        }
-
-        cout << "\nScene " << current_scene_id_ << " was not found.\n";
-        return false;
+        return scene_found;
     }
 
     void ShowFinalScoreIfNeeded(int previous_scene_id) {
@@ -928,23 +933,42 @@ private:
         }
     }
 
-
     bool AskToSave() {
+        int choice;
+        int next_choice;
+        bool return_to_menu = false;
 
+        cout << "\nDo you want to save the game?\n";
+        cout << "1. Yes\n";
+        cout << "2. No\n";
+
+        choice = GetValidChoice(1, 2);
+
+        if (choice == 1) {
+            SaveGame();
+
+            cout << "\nWhat do you want to do now?\n";
+            cout << "1. Return to Main Menu\n";
+            cout << "2. Continue Playing\n";
+
+            next_choice = GetValidChoice(1, 2);
+
+            if (next_choice == 1) {
+                return_to_menu = true;
+            }
+        }
+
+        return return_to_menu;
     }
 
     bool HandleSceneResult(int previous_scene_id) {
+        bool keep_playing = true;
+
         if (current_scene_id_ == -1) {
             cout << "\nGame Over.\n";
-            return false;
+            keep_playing = false;
         }
-
-        if (current_scene_id_ == -3) {
-            cout << "\nExiting game...\n";
-            return false;
-        }
-
-        if (current_scene_id_ == 1 && IsEndingScene(previous_scene_id)) {
+        else if (current_scene_id_ == 1 && IsEndingScene(previous_scene_id)) {
             string player_name = player_.GetName();
 
             player_.ResetAll();
@@ -954,19 +978,19 @@ private:
 
             cout << "\nStarting a new game...\n";
             player_.ShowStats();
-            return true;
         }
+        else {
+            player_.ShowStats();
 
-        player_.ShowStats();
-
-        if (scene_counter_ > 0 && scene_counter_ % 5 == 0) {
-            if (AskToSave()) {
-                cout << "\nReturning to Main Menu...\n";
-                return false;
+            if (scene_counter_ > 0 && scene_counter_ % 5 == 0) {
+                if (AskToSave()) {
+                    cout << "\nReturning to Main Menu...\n";
+                    keep_playing = false;
+                }
             }
         }
 
-        return true;
+        return keep_playing;
     }
 
     void PlayGame() {
@@ -1018,7 +1042,17 @@ public:
     }
 
     void LoadGame() {
-        cout << "Load Game - coming soon.\n";
+        LoadAllScenes();
+
+        if (LoadSaveFile()) {
+            scene_counter_ = 0;
+
+            cout << "\nGame loaded successfully.\n";
+            cout << "Welcome back, " << player_.GetName() << "!\n";
+            player_.ShowStats();
+
+            PlayGame();
+        }
     }
 
     void Run() {
@@ -1026,6 +1060,11 @@ public:
         bool running = true;
 
         while (running) {
+            cout << "\n--- RAVENSPIRE CASTLE ---\n";
+            cout << "1. Start Game\n";
+            cout << "2. Load Game\n";
+            cout << "3. Exit\n";
+
             choice = GetValidChoice(1, 3);
 
             switch (choice) {
