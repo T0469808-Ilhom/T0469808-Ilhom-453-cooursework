@@ -1,4 +1,4 @@
-# IY 453 Course work stage
+# IY 453 Course work
 
 | Assessment Details | Please Complete All Details              |
 | ------------------ | ---------------------------------------- |
@@ -28,107 +28,80 @@
 
 ## Introduction:
 
-The aim of this program is to create an interactive text-based “choose your own adventure” game in C++ that delivers a structured story with branching paths based on the player’s choices. The player progresses through scenes by selecting between two options, with consequences that may lead to success, new routes, item collection, or game over. To enhance gameplay and replayability, the program includes player name personalisation, inventory management with meaningful item effects, puzzle and combat encounters, a scoring system, and save/load features, while applying strong input validation to prevent crashes and handle invalid inputs reliably.
+This report documents the design, development and testing of a text-based adventure game created as part of the IY453 Software Design and Implementation module. The game is called Ravenspire and is written in C++.
+
+The idea behind a text-based adventure game is simple: the player reads a description of a situation and chooses between two options. Each choice leads somewhere different, and those decisions shape the outcome of the game. There are no graphics or animations just text, decisions and consequences. 
+
+Ravenspire puts the player in the role of a prisoner waking up in a cell beneath a castle with no memory of how they got there. The goal is to escape. Along the way the player encounters puzzles, combat, items to collect and traps to survive. There are three possible endings depending on the choices made and the items collected throughout the game.
+
+The program was built using object-oriented programming principles. Game data such as scenes, items and combat encounters are stored in CSV files and loaded at runtime, which keeps the code flexible and the story easy to update without changing the program itself.
 
 ## Analysis and Design
 
-#### **Game flow**
 
-- Display an introduction/start menu (New Game / Load Game / Exit).
 
-- Start a new game by asking for the player’s name.
 
-- Present scenes that always provide two options (Option 1 / Option 2).
 
-- Move to the next scene based on the selected option.
+### **Functional requirements:**
 
-- Detect and display Game Over and allow the player to restart.
+1. Player Name: The program captures the
+   player's name at the start and uses it throughout the all game.
 
-- Detect and display a win ending and show the final score.
+2. Binary Choices: Every scene presents exactly
+   two choices. The player must enter a valid option to proceed.
 
-#### **Input validation**
+3. Lives System: The player begins with three
+   lives. Reaching a game over scene costs one life. Losing all three ends the
+   game permanently.
 
-- Validate all user choices so only valid options are accepted (e.g., 1–2).
+4. Scene Structure: The game contains 46 scenes
+   across four types: navigation, combat, puzzle and item. All scene data is
+   loaded from CSV files at runtime.
 
-- Validate puzzle answers (not empty, correct format if numeric).
+5. Inventory System: The player can collect
+   items that affect health, attack power and defence. Some items unlock specific
+   story paths that cannot be accessed without them.
 
-- Validate save/load actions (file exists, file format is valid).
+6. Combat System: Combat scenes pitting the
+   player against an enemy. The outcome is determined by comparing the player's
+   attack power against the enemy's power with a random element applied to both.
 
-- Print clear error messages and re-prompt the user when input is invalid.
+7. Puzzle System: Puzzle scenes present riddles,
+   anagrams or mathematical challenges. Incorrect answers cost health, trigger
+   traps or end the game depending on the puzzle.
 
-#### **Inventory system**
+8. Save and Load: The player can save their
+   current state at any point. The save file stores name, current scene,
+   inventory, health, attack power, defence, score and remaining lives.
 
-- Allow the player to collect items during the game.
+9. Score System: Points are awarded for
+   defeating enemies, solving puzzles and collecting key items. The score is
+   displayed throughout and shown in full on the final screen.
 
-- Allow the player to view inventory at appropriate times.
+10. Error Handling: All invalid inputs are
+    caught and handled without crashing. File loading errors are reported cleanly
+    without terminating the program.
 
-- Allow the player to use items (where relevant).
+### **Non-functional requirements:**
 
-- Items must affect gameplay by:
-  
-  - modifying health / attack / defense, and/or
-  
-  - unlocking routes (e.g., “key required” checks).
+1. Code Quality: The program follows
+   object-oriented programming principles using a base Scene class with
+   CombatScene, PuzzleScene and ItemScene derived through inheritance.
+   Polymorphism is applied through virtual functions to handle each scene type.
 
-#### **Player stats**
+2. Compatibility: The program compiles and runs
+   using the C++17 standard or later in the CLion IDE and is compatible with
+   Windows, macOS and Linux where possible.
 
-- Store and update player stats such as:
-  
-  - Health (HP)
-  
-  - Attack (ATK)
-  
-  - Defense (DEF)
+3. Performance: All file reading, input handling
+   and game logic executes without noticeable delay in response to player input.
 
-- Ensure stats influence gameplay outcomes (especially combat).
+4. Documentation: All classes, methods and key
+   sections of code are clearly commented on throughout the program.
 
-#### **Puzzle scenarios**
-
-- Include at least 2 puzzle scenarios (one riddle/anagram + one math puzzle) to ensure variety.
-
-- Check the user’s answer and apply consequences:
-  
-  - reward (score increase, item, route unlock), or
-  
-  - penalty (HP loss, lower score, harder route).
-
-#### **Combat scenarios**
-
-- Include at least one combat scenario influenced by player stats and inventory.
-
-- Combat outcome must be determined by a fair rule (stats + randomness).
-
-- Combat must result in either:
-  
-  - win (score reward, possible item), or
-  
-  - loss (HP reduction or Game Over).
-
-#### **Scoring system**
-
-- Track score throughout the game.
-
-- Increase score for completing puzzles, winning combat, or making good decisions.
-
-- Display score at key moments and show a final score at the end.
-
-#### **Save and load**
-
-- Provide the ability to save and resume the game later.
-
-- Saved data must include:
-  
-  - player name
-  
-  - current scene ID (progress point)
-  
-  - player stats (HP/ATK/DEF)
-  
-  - score
-  
-  - inventory contents
-
-- Loading must restore the game to the exact saved state.
+5.  Version Control: All code and documentation is
+   managed on GitHub with a consistent commit history demonstrating the
+   progression of the project across all four development stages.
 
 ## IPO Table
 
