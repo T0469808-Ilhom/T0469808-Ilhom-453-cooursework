@@ -601,19 +601,29 @@ public:
         choice = GetValidChoice(1, 2);
 
         if (choice == correct_choice_) {
-            cout << "Correct answer.\n";
+            cout << "Correct! You earned " << score_reward_ << " score.\n";
             player->AddScore(score_reward_);
+            cout << "Score is now: " << player->GetScore() << "\n";
         }
         else {
             cout << "Wrong answer. You lose " << damage_if_wrong_ << " health.\n";
             player->ChangeHealth(-damage_if_wrong_);
-        }
+            cout << "Health is now: " << player->GetHealth() << "\n";
 
-        if (choice == 1) {
-            next_scene_id = next_scene_1_;
-        }
-        else {
-            next_scene_id = next_scene_2_;
+            // If health hits zero, lose a life but continue — same as combat
+            if (player->GetHealth() <= 0) {
+                player->LoseLife();
+
+                if (player->GetLives() <= 0) {
+                    cout << "You have no lives left.\n";
+                    next_scene_id = -1;
+                }
+                else {
+                    cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
+                    player->ResetForNewLife();
+                    cout << "Health restored to: " << player->GetHealth() << "\n";
+                }
+            }
         }
 
         return next_scene_id;
@@ -676,11 +686,13 @@ public:
         if (player_total >= enemy_total) {
             cout << "You defeated " << enemy_name_ << ".\n";
             player->AddScore(10);
+            cout << "Score is now: " << player->GetScore() << "\n";
             next_scene_id = next_scene_1_;
         }
         else {
-            cout << "You were hit by " << enemy_name_ << ".\n";
+            cout << "You were hit by " << enemy_name_ << ". You lose " << enemy_damage_ << " health.\n";
             player->ChangeHealth(-enemy_damage_);
+            cout << "Health is now: " << player->GetHealth() << "\n";
             next_scene_id = next_scene_2_;
 
             if (player->GetHealth() <= 0) {
@@ -691,8 +703,9 @@ public:
                     next_scene_id = -1;
                 }
                 else {
-                    cout << "You lost a life.\n";
+                    cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
                     player->ResetForNewLife();
+                    cout << "Health restored to: " << player->GetHealth() << "\n";
                 }
             }
         }
@@ -734,11 +747,10 @@ public:
 
         cout << "\n--- Item Scene ---\n";
 
-        // Check if the player carries the required item for this scene.
-        // Reward them with bonus score for being prepared.
-        if (unlock_tag_ != "" && player->HasItem(unlock_tag_)) {
-            cout << "Your " << unlock_tag_ << " reacts to this place. Bonus score!\n";
-            player->AddScore(5);
+
+        // If this item has a special role in the story, note it for the player.
+        if (unlock_tag_ != "" && unlock_tag_ != "none") {
+            cout << "This item could be important later.\n";
         }
 
         cout << ReplacePlayerName(description_, player) << "\n";
@@ -902,11 +914,7 @@ private:
         ItemSceneData item_data = scene_loader_.GetItemSceneById(item_scenes_, current_scene_id_);
         bool scene_found = true;
 
-        if (story_data.scene_id != -1) {
-            StoryScene scene(story_data);
-            current_scene_id_ = scene.Play(&player_);
-        }
-        else if (puzzle_data.scene_id != -1) {
+        if (puzzle_data.scene_id != -1) {
             PuzzleScene scene(puzzle_data);
             current_scene_id_ = scene.Play(&player_);
         }
@@ -916,6 +924,10 @@ private:
         }
         else if (item_data.scene_id != -1) {
             ItemScene scene(item_data);
+            current_scene_id_ = scene.Play(&player_);
+        }
+        else if (story_data.scene_id != -1) {
+            StoryScene scene(story_data);
             current_scene_id_ = scene.Play(&player_);
         }
         else {
@@ -966,6 +978,10 @@ private:
 
         if (current_scene_id_ == -1) {
             cout << "\nGame Over.\n";
+            keep_playing = false;
+        }
+        else if (current_scene_id_ == -3) {
+            cout << "\nThanks for playing. Goodbye!\n";
             keep_playing = false;
         }
         else if (current_scene_id_ == 1 && IsEndingScene(previous_scene_id)) {
