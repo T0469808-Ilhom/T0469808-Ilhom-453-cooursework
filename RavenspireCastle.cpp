@@ -600,6 +600,14 @@ public:
 
         choice = GetValidChoice(1, 2);
 
+        // Set next scene from choice first so it always has a valid value
+        if (choice == 1) {
+            next_scene_id = next_scene_1_;
+        }
+        else {
+            next_scene_id = next_scene_2_;
+        }
+
         if (choice == correct_choice_) {
             cout << "Correct! You earned " << score_reward_ << " score.\n";
             player->AddScore(score_reward_);
@@ -610,7 +618,7 @@ public:
             player->ChangeHealth(-damage_if_wrong_);
             cout << "Health is now: " << player->GetHealth() << "\n";
 
-            // If health hits zero, lose a life but continue — same as combat
+            // If health hits zero lose a life — only game over when all lives gone
             if (player->GetHealth() <= 0) {
                 player->LoseLife();
 
@@ -761,6 +769,7 @@ public:
 
         if (choice == 1) {
             player->AddItem(item_name_, health_bonus_, attack_bonus_, defense_bonus_, score_bonus_);
+            player->ShowInventory();
             next_scene_id = next_scene_1_;
         }
         else {
@@ -919,6 +928,16 @@ private:
             current_scene_id_ = scene.Play(&player_);
         }
         else if (combat_data.scene_id != -1) {
+            // Offer inventory check before combat so player can see their items
+            if (!player_.GetInventory().empty()) {
+                cout << "\nCheck inventory before the fight? 1. Yes  2. No\n";
+                int inv_choice = GetValidChoice(1, 2);
+
+                if (inv_choice == 1) {
+                    player_.ShowInventory();
+                }
+            }
+
             CombatScene scene(combat_data);
             current_scene_id_ = scene.Play(&player_);
         }
@@ -997,6 +1016,7 @@ private:
         }
         else {
             player_.ShowStats();
+
 
             if (scene_counter_ > 0 && scene_counter_ % 5 == 0) {
                 if (AskToSave()) {
