@@ -451,26 +451,32 @@ protected:
 
     /* Loops until the player enters a valid integer between min and max.
    Centralised here so all scene types share the same validation logic (DRY). */
+    // Accepts 1 or 2 as story choices, S to save and E to exit.
+    // Returns -2 for save and -3 for exit so the game loop can handle them.
     int GetValidChoice(int min, int max) {
-        int choice;
+        string input;
+        int choice = 0;
         bool valid_choice = false;
 
         while (!valid_choice) {
+            cout << "[S = Save and go to menu | E = Exit game]\n";
             cout << "Enter your choice: ";
-            cin >> choice;
+            getline(cin, input);
 
-            if (cin.fail()) {
-                cout << "Invalid input. Please enter a number.\n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if (input == "S" || input == "s") {
+                choice = -2;
+                valid_choice = true;
             }
-            else if (choice < min || choice > max) {
-                cout << "Invalid choice. Please enter " << min << " or " << max << ".\n";
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            else if (input == "E" || input == "e") {
+                choice = -3;
+                valid_choice = true;
+            }
+            else if (input == "1" || input == "2") {
+                choice = stoi(input);
+                valid_choice = true;
             }
             else {
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                valid_choice = true;
+                cout << "Invalid choice. Please enter 1, 2, S or E.\n";
             }
         }
 
@@ -529,7 +535,10 @@ public:
 
         choice = GetValidChoice(1, 2);
 
-        if (choice == 1) {
+        if (choice == -2 || choice == -3) {
+            next_scene_id = choice;
+        }
+        else if (choice == 1) {
             next_scene_id = next_scene_1_;
         }
         else {
@@ -575,36 +584,42 @@ public:
 
         choice = GetValidChoice(1, 2);
 
-        // Set next scene from choice first so it always has a valid value
-        if (choice == 1) {
-            next_scene_id = next_scene_1_;
+        // If player chose to save or exit pass the signal straight back
+        if (choice == -2 || choice == -3) {
+            next_scene_id = choice;
         }
         else {
-            next_scene_id = next_scene_2_;
-        }
+            // Set next scene from choice first so it always has a valid value
+            if (choice == 1) {
+                next_scene_id = next_scene_1_;
+            }
+            else {
+                next_scene_id = next_scene_2_;
+            }
 
-        if (choice == correct_choice_) {
-            cout << "Correct! You earned " << score_reward_ << " score.\n";
-            player->AddScore(score_reward_);
-            cout << "Score is now: " << player->GetScore() << "\n";
-        }
-        else {
-            cout << "Wrong answer. You lose " << damage_if_wrong_ << " health.\n";
-            player->ChangeHealth(-damage_if_wrong_);
-            cout << "Health is now: " << player->GetHealth() << "\n";
+            if (choice == correct_choice_) {
+                cout << "Correct! You earned " << score_reward_ << " score.\n";
+                player->AddScore(score_reward_);
+                cout << "Score is now: " << player->GetScore() << "\n";
+            }
+            else {
+                cout << "Wrong answer. You lose " << damage_if_wrong_ << " health.\n";
+                player->ChangeHealth(-damage_if_wrong_);
+                cout << "Health is now: " << player->GetHealth() << "\n";
 
-            // If health hits zero lose a life — only game over when all lives gone
-            if (player->GetHealth() <= 0) {
-                player->LoseLife();
+                // If health hits zero lose a life — only game over when all lives gone
+                if (player->GetHealth() <= 0) {
+                    player->LoseLife();
 
-                if (player->GetLives() <= 0) {
-                    cout << "You have no lives left.\n";
-                    next_scene_id = -1;
-                }
-                else {
-                    cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
-                    player->ResetForNewLife();
-                    cout << "Health restored to: " << player->GetHealth() << "\n";
+                    if (player->GetLives() <= 0) {
+                        cout << "You have no lives left.\n";
+                        next_scene_id = -1;
+                    }
+                    else {
+                        cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
+                        player->ResetForNewLife();
+                        cout << "Health restored to: " << player->GetHealth() << "\n";
+                    }
                 }
             }
         }
@@ -635,21 +650,26 @@ public:
     }
 
     int Play(Player* player) {
-        int choice;
-        int player_roll;
-        int enemy_roll;
-        int player_total;
-        int enemy_total;
-        int next_scene_id;
+    int choice;
+    int player_roll;
+    int enemy_roll;
+    int player_total;
+    int enemy_total;
+    int next_scene_id;
 
-        cout << "\n--- Combat Scene ---\n";
-        cout << ReplacePlayerName(description_, player) << "\n";
-        cout << "Enemy: " << enemy_name_ << "\n";
-        cout << "1. " << choice_1_ << "\n";
-        cout << "2. " << choice_2_ << "\n";
+    cout << "\n--- Combat Scene ---\n";
+    cout << ReplacePlayerName(description_, player) << "\n";
+    cout << "Enemy: " << enemy_name_ << "\n";
+    cout << "1. " << choice_1_ << "\n";
+    cout << "2. " << choice_2_ << "\n";
 
-        choice = GetValidChoice(1, 2);
+    choice = GetValidChoice(1, 2);
 
+    // If player chose to save or exit pass the signal straight back
+    if (choice == -2 || choice == -3) {
+        next_scene_id = choice;
+    }
+    else {
         if (choice == 1) {
             cout << "You chose: " << choice_1_ << "\n";
         }
@@ -692,9 +712,10 @@ public:
                 }
             }
         }
-
-        return next_scene_id;
     }
+
+    return next_scene_id;
+}
 };
 
 class ItemScene : public Scene {
@@ -728,7 +749,6 @@ public:
 
         cout << "\n--- Item Scene ---\n";
 
-
         // If this item has a special role in the story, note it for the player.
         if (unlock_tag_ != "" && unlock_tag_ != "none") {
             cout << "This item could be important later.\n";
@@ -740,7 +760,11 @@ public:
 
         choice = GetValidChoice(1, 2);
 
-        if (choice == 1) {
+        // If player chose to save or exit pass the signal straight back
+        if (choice == -2 || choice == -3) {
+            next_scene_id = choice;
+        }
+        else if (choice == 1) {
             player->AddItem(item_name_, health_bonus_, attack_bonus_, score_bonus_);
             player->ShowInventory();
             next_scene_id = next_scene_1_;
@@ -935,33 +959,6 @@ private:
         }
     }
 
-    bool AskToSave() {
-        int choice;
-        int next_choice;
-        bool return_to_menu = false;
-
-        cout << "\nDo you want to save the game?\n";
-        cout << "1. Yes\n";
-        cout << "2. No\n";
-
-        choice = GetValidChoice(1, 2);
-
-        if (choice == 1) {
-            SaveGame();
-
-            cout << "\nWhat do you want to do now?\n";
-            cout << "1. Return to Main Menu\n";
-            cout << "2. Continue Playing\n";
-
-            next_choice = GetValidChoice(1, 2);
-
-            if (next_choice == 1) {
-                return_to_menu = true;
-            }
-        }
-
-        return return_to_menu;
-    }
 
     bool HandleSceneResult(int previous_scene_id) {
         bool keep_playing = true;
@@ -970,9 +967,14 @@ private:
             cout << "\nGame Over.\n";
             keep_playing = false;
         }
-        else if (current_scene_id_ == -3) {
-            cout << "\nThanks for playing. Goodbye!\n";
+        else if (current_scene_id_ == -2) {
+            SaveGame();
+            cout << "Game saved. Returning to main menu.\n";
             keep_playing = false;
+        }
+        else if (current_scene_id_ == -3) {
+            cout << "Goodbye!\n";
+            exit(0);
         }
         else if (current_scene_id_ == 1 && IsEndingScene(previous_scene_id)) {
             string player_name = player_.GetName();
@@ -987,14 +989,6 @@ private:
         }
         else {
             player_.ShowStats();
-
-
-            if (scene_counter_ > 0 && scene_counter_ % 5 == 0) {
-                if (AskToSave()) {
-                    cout << "\nReturning to Main Menu...\n";
-                    keep_playing = false;
-                }
-            }
         }
 
         return keep_playing;
