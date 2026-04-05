@@ -15,17 +15,15 @@ private:
     int health_;
     int lives_;
     int attack_power_;
-    int defense_;
     int score_;
     vector<string> inventory_;
 
 public:
     Player() {
         name_ = "Player";
-        health_ = 10;
+        health_ = 100;
         lives_ = 3;
-        attack_power_ = 4;
-        defense_ = 0;
+        attack_power_ = 10;
         score_ = 0;
     }
 
@@ -44,10 +42,6 @@ public:
 
     void SetAttackPower(int value) {
         attack_power_ = (value < 0) ? 0 : value;
-    }
-
-    void SetDefense(int value) {
-        defense_ = (value < 0) ? 0 : value;
     }
 
     void SetScore(int value) {
@@ -71,10 +65,6 @@ public:
         return attack_power_;
     }
 
-    int GetDefense() const {
-        return defense_;
-    }
-
     int GetScore() const {
         return score_;
     }
@@ -93,11 +83,6 @@ public:
         SetAttackPower(attack_power_ + amount);
     }
 
-    /* Applies a relative change to defense using the clamping setter */
-    void ChangeDefense(int amount) {
-        SetDefense(defense_ + amount);
-    }
-
     void AddScore(int amount) {
         SetScore(score_ + amount);
     }
@@ -110,15 +95,14 @@ public:
 
     /* Restores health to full after losing a life */
     void ResetForNewLife() {
-        health_ = 10;
+        health_ = 100;
     }
 
     void ResetAll() {
         name_ = "Player";
-        health_ = 10;
+        health_ = 100;
         lives_ = 3;
-        attack_power_ = 4;
-        defense_ = 0;
+        attack_power_ = 10;
         score_ = 0;
         inventory_.clear();
     }
@@ -133,13 +117,11 @@ public:
     }
 
     /* Adds item to inventory and immediately applies all its stat bonuses */
-    void AddItem(const string& item_name, int hp_delta, int atk_delta,
-                 int def_delta, int score_delta) {
+    void AddItem(const string& item_name, int hp_delta, int atk_delta, int score_delta) {
         inventory_.push_back(item_name);
 
         ChangeHealth(hp_delta);
         ChangeAttackPower(atk_delta);
-        ChangeDefense(def_delta);
         AddScore(score_delta);
 
         cout << "You obtained: " << item_name << "\n";
@@ -150,10 +132,6 @@ public:
 
         if (atk_delta != 0) {
             cout << "ATK " << (atk_delta > 0 ? "+" : "") << atk_delta << "\n";
-        }
-
-        if (def_delta != 0) {
-            cout << "DEF " << (def_delta > 0 ? "+" : "") << def_delta << "\n";
         }
 
         if (score_delta != 0) {
@@ -192,7 +170,6 @@ public:
         cout << "Health:       " << health_       << "\n";
         cout << "Lives:        " << lives_        << "\n";
         cout << "Attack Power: " << attack_power_ << "\n";
-        cout << "Defense:      " << defense_      << "\n";
         cout << "Score:        " << score_        << "\n";
     }
 };
@@ -242,7 +219,6 @@ struct ItemSceneData {
     string item_name;
     int health_bonus;
     int attack_bonus;
-    int defense_bonus;
     int score_bonus;
     string unlock_tag;
 };
@@ -391,7 +367,7 @@ public:
             while (getline(file, line)) {
                 vector<string> fields = SplitCsvLine(line);
 
-                if (fields.size() == 12) {
+                if (fields.size() == 11) {
                     ItemSceneData scene;
                     scene.scene_id = stoi(fields[0]);
                     scene.description = fields[1];
@@ -402,9 +378,8 @@ public:
                     scene.item_name = fields[6];
                     scene.health_bonus = stoi(fields[7]);
                     scene.attack_bonus = stoi(fields[8]);
-                    scene.defense_bonus = stoi(fields[9]);
-                    scene.score_bonus = stoi(fields[10]);
-                    scene.unlock_tag = fields[11];
+                    scene.score_bonus = stoi(fields[9]);
+                    scene.unlock_tag = fields[10];
 
                     item_scenes.push_back(scene);
                 }
@@ -685,7 +660,7 @@ public:
         player_roll = rand() % 6 + 1;
         enemy_roll = rand() % 6 + 1;
 
-        player_total = player->GetAttackPower() + player->GetDefense() + player_roll;
+        player_total = player->GetAttackPower() + player_roll;
         enemy_total = enemy_power_ + enemy_roll;
 
         cout << player->GetName() << " total: " << player_total << "\n";
@@ -731,7 +706,6 @@ private:
     string item_name_;
     int health_bonus_;
     int attack_bonus_;
-    int defense_bonus_;
     int score_bonus_;
     string unlock_tag_;
 
@@ -744,7 +718,6 @@ public:
         item_name_ = data.item_name;
         health_bonus_ = data.health_bonus;
         attack_bonus_ = data.attack_bonus;
-        defense_bonus_ = data.defense_bonus;
         score_bonus_ = data.score_bonus;
         unlock_tag_ = data.unlock_tag;
     }
@@ -768,7 +741,7 @@ public:
         choice = GetValidChoice(1, 2);
 
         if (choice == 1) {
-            player->AddItem(item_name_, health_bonus_, attack_bonus_, defense_bonus_, score_bonus_);
+            player->AddItem(item_name_, health_bonus_, attack_bonus_, score_bonus_);
             player->ShowInventory();
             next_scene_id = next_scene_1_;
         }
@@ -846,7 +819,6 @@ private:
             file << player_.GetHealth() << ","
                  << player_.GetLives() << ","
                  << player_.GetAttackPower() << ","
-                 << player_.GetDefense() << ","
                  << player_.GetScore() << "\n";
 
             inventory = player_.GetInventory();
@@ -887,15 +859,14 @@ private:
                 getline(file, line);
                 stats = scene_loader_.SplitCsvLine(line);
 
-                if (stats.size() != 5) {
+                if (stats.size() != 4) {
                     cout << "Error: save file data is invalid.\n";
                 }
                 else {
                     player_.SetHealth(stoi(stats[0]));
                     player_.SetLives(stoi(stats[1]));
                     player_.SetAttackPower(stoi(stats[2]));
-                    player_.SetDefense(stoi(stats[3]));
-                    player_.SetScore(stoi(stats[4]));
+                    player_.SetScore(stoi(stats[3]));
 
                     getline(file, line);
                     item_count = stoi(line);
