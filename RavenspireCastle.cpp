@@ -8,7 +8,8 @@
 using namespace std;
 
 
-
+/* Holds everything about the player — health, lives, attack and score.
+   All values are controlled so they never drop below zero. */
 class Player {
 private:
     string name_;
@@ -33,19 +34,25 @@ public:
     }
 
     void SetHealth(int value) {
-        health_ = (value < 0) ? 0 : value;
+        if (value < 0) { health_ = 0; }
+        else if (value > 100) { health_ = 100; }
+        else { health_ = value; }
     }
 
     void SetLives(int value) {
-        lives_ = (value < 0) ? 0 : value;
+        if (value < 0) { lives_ = 0; }
+        else if (value > 3) { lives_ = 3; }
+        else { lives_ = value; }
     }
 
     void SetAttackPower(int value) {
-        attack_power_ = (value < 0) ? 0 : value;
+        if (value < 0) { attack_power_ = 0; }
+        else { attack_power_ = value; }
     }
 
     void SetScore(int value) {
-        score_ = (value < 0) ? 0 : value;
+        if (value < 0) { score_ = 0; }
+        else { score_ = value; }
     }
 
     /* Getters */
@@ -153,10 +160,10 @@ public:
     }
 
     void ShowInventory() const {
-        cout << "\n--- Inventory ---\n";
+        cout << "\n=====  Inventory =====\n";
 
         if (inventory_.empty()) {
-            cout << "Inventory is empty.\n";
+            cout << "\n Inventory is empty.\n";
         } else {
             for (const string& item : inventory_) {
                 cout << "- " << item << "\n";
@@ -165,12 +172,13 @@ public:
     }
 
     void ShowStats() const {
-        cout << "\n--- Player Stats ---\n";
+        cout << "\n===== PLAYER STATS =====\n";
         cout << "Name:         " << name_         << "\n";
         cout << "Health:       " << health_       << "\n";
         cout << "Lives:        " << lives_        << "\n";
         cout << "Attack Power: " << attack_power_ << "\n";
         cout << "Score:        " << score_        << "\n";
+        cout << "\n";
     }
 };
 
@@ -223,8 +231,12 @@ struct ItemSceneData {
     string unlock_tag;
 };
 
+/* Handles all file reading for the game.
+    Scene data lives in CSV files so the story can be changed without touching the code. */
 class SceneLoader {
 public:
+    /* Breaks a CSV line into separate fields.
+   Handles fields that contain commas inside quotes so descriptions load correctly. */
     vector<string> SplitCsvLine(string line) {
         vector<string> fields;
         string current_field;
@@ -444,14 +456,16 @@ public:
     }
 };
 
+/* Base class for all scene types.
+   Derived classes only need to implement Play().
+   Input and name replacement are handled here. */
+
 class Scene {
 protected:
     int scene_id_;
     string description_;
 
-    /* Loops until the player enters a valid integer between min and max.
-   Centralised here so all scene types share the same validation logic (DRY). */
-    // Accepts 1 or 2 as story choices, S to save and E to exit.
+    // Used during scenes accepts 1 or 2 as choices, S to save and E to exit.
     // Returns -2 for save and -3 for exit so the game loop can handle them.
     int GetValidChoice(int min, int max) {
         string input;
@@ -459,7 +473,7 @@ protected:
         bool valid_choice = false;
 
         while (!valid_choice) {
-            cout << "[S = Save and go to menu | E = Exit game]\n";
+            cout << "\n[S = Save and go to menu | E = Exit game]\n";
             cout << "Enter your choice: ";
             getline(cin, input);
 
@@ -483,6 +497,8 @@ protected:
         return choice;
     }
 
+    /* Looks for the placeholder {player_name} in the scene text and swaps it
+   with the actual player name so descriptions feel personal. */
     string ReplacePlayerName(string text, Player* player) {
         size_t position = text.find("{player_name}");
 
@@ -528,8 +544,9 @@ public:
     int Play(Player* player) {
         int choice;
         int next_scene_id;
-
+        cout << "\n ==== Story scene ==== \n ";
         cout << "\n" << ReplacePlayerName(description_, player) << "\n";
+        cout << "\n";
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
@@ -576,7 +593,7 @@ public:
         int choice;
         int next_scene_id;
 
-        cout << "\n--- Puzzle Scene ---\n";
+        cout << "\n=== Puzzle Scene ===\n";
         cout << "Type: " << sub_type_ << "\n";
         cout << ReplacePlayerName(description_, player) << "\n";
         cout << "1. " << choice_1_ << "\n";
@@ -650,22 +667,22 @@ public:
     }
 
     int Play(Player* player) {
-    int choice;
-    int player_roll;
-    int enemy_roll;
-    int player_total;
-    int enemy_total;
-    int next_scene_id;
+        int choice;
+        int player_roll;
+        int enemy_roll;
+        int player_total;
+        int enemy_total;
+        int next_scene_id;
 
-    cout << "\n--- Combat Scene ---\n";
-    cout << ReplacePlayerName(description_, player) << "\n";
-    cout << "Enemy: " << enemy_name_ << "\n";
-    cout << "1. " << choice_1_ << "\n";
-    cout << "2. " << choice_2_ << "\n";
+        cout << "\n ===== Combat Scene =====\n";
+        cout << ReplacePlayerName(description_, player) << "\n";
+        cout << "Enemy: " << enemy_name_ << "\n";
+        cout << "1. " << choice_1_ << "\n";
+        cout << "2. " << choice_2_ << "\n";
 
     choice = GetValidChoice(1, 2);
 
-    // If player chose to save or exit pass the signal straight back
+
     if (choice == -2 || choice == -3) {
         next_scene_id = choice;
     }
@@ -747,7 +764,7 @@ public:
         int choice;
         int next_scene_id;
 
-        cout << "\n--- Item Scene ---\n";
+        cout << "\n===== Item Scene =====\n";
 
         // If this item has a special role in the story, note it for the player.
         if (unlock_tag_ != "" && unlock_tag_ != "none") {
@@ -760,7 +777,7 @@ public:
 
         choice = GetValidChoice(1, 2);
 
-        // If player chose to save or exit pass the signal straight back
+
         if (choice == -2 || choice == -3) {
             next_scene_id = choice;
         }
@@ -789,8 +806,7 @@ private:
     int current_scene_id_;
     int scene_counter_;
 
-    //Loops until the player enters a valid integer between min and max.
-    //Centralised here so all scene types share the same validation logic.
+    // Used for the main menu only accepts numbers between min and max.
     int GetValidChoice(int min, int max) {
         int choice;
         bool valid_choice = false;
@@ -819,7 +835,7 @@ private:
 
 
     bool IsEndingScene(int scene_id) {
-        bool is_ending = (scene_id == 41 || scene_id == 42 || scene_id == 43);
+        bool is_ending = (scene_id == 44 || scene_id == 45 || scene_id == 46);
         return is_ending;
     }
 
@@ -831,22 +847,22 @@ private:
     }
 
     void SaveGame() {
-        ofstream file("savegame.csv");
+        ofstream file("savegame.txt");
         vector<string> inventory;
 
         if (!file.is_open()) {
             cout << "Error: could not save the game.\n";
         }
         else {
-            file << player_.GetName() << "\n";
-            file << current_scene_id_ << "\n";
-            file << player_.GetHealth() << ","
-                 << player_.GetLives() << ","
-                 << player_.GetAttackPower() << ","
-                 << player_.GetScore() << "\n";
+            file << "name=" << player_.GetName() << "\n";
+            file << "scene=" << current_scene_id_ << "\n";
+            file << "health=" << player_.GetHealth() << "\n";
+            file << "lives=" << player_.GetLives() << "\n";
+            file << "attack=" << player_.GetAttackPower() << "\n";
+            file << "score=" << player_.GetScore() << "\n";
 
             inventory = player_.GetInventory();
-            file << inventory.size() << "\n";
+            file << "items=" << inventory.size() << "\n";
 
             for (int i = 0; i < inventory.size(); i++) {
                 file << inventory[i] << "\n";
@@ -857,59 +873,56 @@ private:
         }
     }
 
+    /* Reads the save file and restores the player back to where they left off.
+   Returns false if the file is missing or the data does not look right. */
     bool LoadSaveFile() {
-        ifstream file("savegame.csv");
+        ifstream file("savegame.txt");
         string line;
-        vector<string> stats;
         int item_count;
         bool loaded = false;
 
         if (!file.is_open()) {
-            cout << "Error: could not open savegame.csv\n";
+            cout << "Error: could not open savegame.txt\n";
         }
         else {
+            player_.ResetAll();
+
             getline(file, line);
+            player_.SetName(line.substr(5));
 
-            if (line == "") {
-                cout << "Error: save file is empty.\n";
-            }
-            else {
-                player_.ResetAll();
-                player_.SetName(line);
+            getline(file, line);
+            current_scene_id_ = stoi(line.substr(6));
 
+            getline(file, line);
+            player_.SetHealth(stoi(line.substr(7)));
+
+            getline(file, line);
+            player_.SetLives(stoi(line.substr(6)));
+
+            getline(file, line);
+            player_.SetAttackPower(stoi(line.substr(7)));
+
+            getline(file, line);
+            player_.SetScore(stoi(line.substr(6)));
+
+            getline(file, line);
+            item_count = stoi(line.substr(6));
+            player_.ClearInventory();
+
+            for (int i = 0; i < item_count; i++) {
                 getline(file, line);
-                current_scene_id_ = stoi(line);
-
-                getline(file, line);
-                stats = scene_loader_.SplitCsvLine(line);
-
-                if (stats.size() != 4) {
-                    cout << "Error: save file data is invalid.\n";
-                }
-                else {
-                    player_.SetHealth(stoi(stats[0]));
-                    player_.SetLives(stoi(stats[1]));
-                    player_.SetAttackPower(stoi(stats[2]));
-                    player_.SetScore(stoi(stats[3]));
-
-                    getline(file, line);
-                    item_count = stoi(line);
-                    player_.ClearInventory();
-
-                    for (int i = 0; i < item_count; i++) {
-                        getline(file, line);
-                        player_.AddInventoryItem(line);
-                    }
-
-                    loaded = true;
-                }
+                player_.AddInventoryItem(line);
             }
 
+            loaded = true;
             file.close();
         }
 
         return loaded;
     }
+
+    /* Finds the right scene type for the current ID.
+   Puzzle, combat and item are checked before story so they always take priority. */
 
     bool PlayCurrentScene() {
         StorySceneData story_data = scene_loader_.GetStorySceneById(story_scenes_, current_scene_id_);
@@ -959,7 +972,8 @@ private:
         }
     }
 
-
+/* Decides what happens after each scene ends.
+   Handles game over, story endings, and the save or exit signals from the player. */
     bool HandleSceneResult(int previous_scene_id) {
         bool keep_playing = true;
 
@@ -968,6 +982,9 @@ private:
             keep_playing = false;
         }
         else if (current_scene_id_ == -2) {
+            // Restore the previous scene before saving so the player
+            // returns to the right place when they load the game.
+            current_scene_id_ = previous_scene_id;
             SaveGame();
             cout << "Game saved. Returning to main menu.\n";
             keep_playing = false;
@@ -1061,7 +1078,7 @@ public:
         bool running = true;
 
         while (running) {
-            cout << "\n--- RAVENSPIRE CASTLE ---\n";
+            cout << "\n==== RAVENSPIRE CASTLE ====\n";
             cout << "1. Start Game\n";
             cout << "2. Load Game\n";
             cout << "3. Exit\n";
