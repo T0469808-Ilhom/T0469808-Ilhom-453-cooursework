@@ -14,10 +14,6 @@
 
 - [x] *Where I have used AI, I have cited and referenced appropriately.
 
-
-
-
-
 ## Table of Contents
 
 [Introduction: 3](#_Toc226400620)
@@ -55,10 +51,6 @@ Ravenspire puts the player in the role of a prisoner waking up in a cell beneath
 The program was built using object-oriented programming principles. Game data such as scenes, items and combat encounters are stored in CSV files and loaded at runtime, which keeps the code flexible and the story easy to update without changing the program itself.
 
 ## Analysis and Design
-
- 
-
-
 
 ## Program specifications:
 
@@ -153,23 +145,23 @@ The program was built using object-oriented programming principles. Game data su
 
 ### Algorithm:
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_1.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/Flowchart_1.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_2.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_2.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_3.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_3.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_4.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_4.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_5.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_5.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_6.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_6.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_7.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_7.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_8.png)
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Final%20Algorithms/flowchart_8.jpg)
 
-![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Flowchart_9.png)
+
 
 ### Class Diagram:
 
@@ -234,73 +226,47 @@ The program was tested using black box testing. This means the tests only examin
 
 ### 
 
-
-
 ## Annotation Screenshots:
-
-
 
 Screenshot – 1:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%201.png)
 
 This screenshot shows the main menu displayed when the program starts.
 The title Ravenspire Castle is printed at the top. The user is presented with
 three options: start a new game, load a saved game, or exit. The program waits
 for the user to enter 1, 2 or 3 and will reject anything else and re-prompt.
 
-
-
-
-
 Screenshot – 2:
 
-![]()
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%202.png)
 
 This screenshot shows the program asking the player to enter their name
 after selecting Start Game. The name is stored in the Player class and used
 throughout the game in scene descriptions and messages. If the player presses
 Enter without typing anything, the program defaults to the name Player.
 
-
-
-
-
 Screenshots – 3:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%203.png)
 
 This screenshot shows an item scene where the player has chosen to pick
 up the item. The item name is added to the inventory, and the score bonuses are
 applied immediately. The updated inventory is shown so the player can see what
 they are carrying.
 
-
-
-
-
 Screenshot – 4:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%204.png)
 
 This screenshot shows a puzzle scene with the sub-type displayed above
 the description. The player must choose between two options one is correct and
 awards score, the other is wrong and reduces health. The correct answer is
 stored in the CSV and checked in PuzzleScene:Play.
 
-
-
 Screenshot – 5:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%205.png)
 
 This screenshot shows a combat scene. The player's attack power is
 combined with a random number between 1 and 6 to produce the player total. The
@@ -308,30 +274,18 @@ enemy power is also combined with a random number to produce the enemy total.
 The higher total wins. If the player loses, health is reduced by the enemy
 damage value.
 
-
-
-
-
 Screenshot – 6:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%206.png)
 
 This screenshot shows a story scene loaded from scenes.csv. The
 description is displayed and the player is given two choices. At the bottom the
 program reminds the player they can type S to save and return to the menu or E
 to exit the program immediately.
 
-
-
-
-
 Screenshots – 7:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%207.png)
 
 This screenshot shows the result of choosing the wrong answer in a
 puzzle scene. The program displays the health penalty and shows the new health
@@ -339,65 +293,39 @@ value. If health reaches zero the player loses a life and health is restored to
 
 100 If all lives are lost the game ends.
 
-
-
-
-
 Screenshot – 8:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%208.png)
 
 This screenshot shows an item scene where the player has chosen to pick
 up the item. The item name is added to the inventory and the stat bonuses are
 applied immediately. The updated inventory is shown so the player can see what
 they are carrying.
 
-
-
 Screenshot – 9:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%209.png)
 
 This screenshot shows the save prompt which appears automatically every
 5 scenes. The player can choose to save and return to the main menu or continue
 playing. If they save, the game state is written to savegame.txt including the
 player name, current scene, health, lives, attack power, score and inventory.
 
-
-
-
-
 Screenshot – 10:
 
-![]()
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%2010.png)
 
 This screenshot shows the program loading a saved game. The save file is
 read line by line and all player data is restored. The game resumes at the
 exact scene where the player saved so no progress is lost.
 
-
-
 Screenshot – 11:
 
-![]()
-
-
-
-
+![](https://github.com/T0469808-Ilhom/T0469808-Ilhom-453-cooursework/blob/main/Anotated%20screenshots/Screenshot%2011.png)
 
 This screenshot shows what happens when the player enters something
 invalid such as a letter or a number outside the valid range. The program
 displays an error message and re-prompts without crashing.
-
-
-
-
 
 ## Technical elements:
 
@@ -467,8 +395,6 @@ dynamically as the player picks them up. The loaded scene data for each scene
 type is also stored in a vector so any number of scenes can be loaded from the
 CSV without knowing the size in advance. Vectors are more flexible than
 fixed-size arrays because they grow automatically as data is added.
-
-
 
 # Evaluation:
 
@@ -570,8 +496,6 @@ item and unlock system more carefully so that collected items had a stronger eff
 on the paths available to the player. This would make the game feel more
 complete and would improve both the gameplay and the overall design.
 
-
-
 <style>
 </style>
 
@@ -596,10 +520,6 @@ IBM. (n.d.). Virtual member functions (C++ only). Retrieved from: [https://www.i
 
 Open AI. Model: Thinking. Prompt: Create narrative story for the following
 project make sure the number of scenes are above 30: [Accessed 18 march 2026.]
-
-
-
-
 
 # Appendix code listing:
 
@@ -1714,5 +1634,4 @@ int main() {
     game.Run();
     return 0;
 }
-
 ```
