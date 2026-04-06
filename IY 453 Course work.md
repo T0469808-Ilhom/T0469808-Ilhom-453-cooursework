@@ -10,21 +10,16 @@
 | Date of Submission | 30.01.2026                               |
 | Word Count         |                                          |
 
+
+
 - [x] *I confirm that this assignment is my own work. Where I have referred to academic sources, I have provided in-text citations and included the sources in
   the final reference list.*
 
 - [x] *Where I have used AI, I have cited and referenced appropriately.
 
-## Contents
 
-- [Introduction](#introduction)
-- [Analysis and Design](#analysis-and-design)
-  - [Program Specification](#program-specification)
-  - [IPO Table](#ipo-table)
-  - [Algorithms](#algorithms)
-  - [Flowcharts](#flowcharts)
-  - [Class Diagram](#class-diagram)
-- [References](#references)
+
+
 
 ## Introduction:
 
@@ -37,10 +32,6 @@ Ravenspire puts the player in the role of a prisoner waking up in a cell beneath
 The program was built using object-oriented programming principles. Game data such as scenes, items and combat encounters are stored in CSV files and loaded at runtime, which keeps the code flexible and the story easy to update without changing the program itself.
 
 ## Analysis and Design
-
-
-
-
 
 ### **Functional requirements:**
 
@@ -99,24 +90,37 @@ The program was built using object-oriented programming principles. Game data su
 4. Documentation: All classes, methods and key
    sections of code are clearly commented on throughout the program.
 
-5.  Version Control: All code and documentation is
+5. Version Control: All code and documentation is
    managed on GitHub with a consistent commit history demonstrating the
    progression of the project across all four development stages.
 
-## IPO Table
+## Inputs, Processes and Outputs (IPO Table)
 
-| Feature                      | Inputs                                       | Processing                                                                                                         | Outputs                                                                           |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Show start menu & get choice | User menu choice (1–3)                       | Display start menu, read input, validate range; if invalid show error and re-prompt.                               | A valid menu option selected (1–3).                                               |
-| Choice 1: Start new game     | User menu choice = 1, player name (string)   | Ask for player name, validate not empty, initialise starting stats/score/inventory, set starting scene.            | Welcome message using player name + first scene displayed.                        |
-| Choice 2: Load game          | User menu choice = 2, filename/slot (string) | Validate file exists, read saved state, validate format, restore player stats/score/inventory and current scene.   | Load success message + resumed scene OR load error message.                       |
-| Choice 3: Exit game          | User menu choice = 3                         | End the program cleanly.                                                                                           | Goodbye message.                                                                  |
-| Play a scene (binary choice) | Scene choice (1 or 2)                        | Display scene narrative + 2 options, validate input, apply consequences, move to next scene.                       | Next scene displayed + consequence message (and score/stats updated if relevant). |
-| Puzzle scenario              | Puzzle answer (string/number)                | Ask puzzle question, validate input, check answer, apply reward/penalty and decide next route.                     | Correct/incorrect feedback + updated score/stats + next scene.                    |
-| Combat scenario              | Combat choice (e.g., 1 = Fight, 2 = Run)     | Validate input, calculate combat using stats + randomness, apply HP/score changes, decide next route or Game Over. | Combat outcome message + updated HP/score + next scene OR Game Over.              |
-| View inventory               | Inventory request (Y/N)                      | If requested, display inventory list and return to gameplay.                                                       | Inventory list OR “inventory empty” message.                                      |
-| Use item                     | Item selection (item number)                 | Validate selection, apply item effect (heal/buff/unlock), remove item if consumable.                               | Confirmation message + updated stats/route access.                                |
-| Save game                    | Save choice (Y/N), filename/slot (string)    | Validate filename/slot, write game state to file, handle errors safely.                                            | Save success message OR save error message.                                       |
+| Feature                | Inputs                                                                 | Processing                                                                                                                                                                            | Outputs                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Start program          | Program launch                                                         | Create the Game object and open the main menu loop.                                                                                                                                   | Main menu displayed.                                                                       |
+| Display main menu      | User menu choice (1–3)                                                 | Show the options Start Game, Load Game, and Exit, then validate the input so only allowed values are accepted.                                                                        | Selected menu option opened or error message shown.                                        |
+| Start new game         | Player name                                                            | Reset player data to default values, store the player name, set the first scene ID, load all scene files, and begin the game loop.                                                    | Welcome message, starting stats, and first scene displayed.                                |
+| Load saved game        | Save file (savegame.txt)                                               | Open the save file, read saved values, restore player name, current scene, stats, score, and inventory, then continue the game from that point.                                       | Saved game loaded or error message shown.                                                  |
+| Load story scene data  | scenes.csv                                                             | Read the CSV file, skip the header row, split each line into fields, convert values to the correct data types, and store the scenes in a vector.                                      | Story scenes loaded into memory or file error shown.                                       |
+| Load puzzle scene data | puzzleScene.csv                                                        | Read and validate puzzle scene data from the CSV file and store it in a vector for later access.                                                                                      | Puzzle scenes loaded into memory or file error shown.                                      |
+| Load combat scene data | combatScene.csv                                                        | Read and validate combat scene data from the CSV file and store it in a vector for later access.                                                                                      | Combat scenes loaded into memory or file error shown.                                      |
+| Load item scene data   | itemScene.csv                                                          | Read and validate item scene data from the CSV file and store it in a vector for later access.                                                                                        | Item scenes loaded into memory or file error shown.                                        |
+| Find current scene     | Current scene ID                                                       | Search the loaded scene collections and identify whether the current scene is a story, puzzle, combat, or item scene.                                                                 | Correct scene object created and played, or scene not found message shown.                 |
+| Play story scene       | Current scene data, player choice (1 or 2)                             | Show the scene description and two choices, replace {player_name} with the real player name, validate the input, and move to the next linked scene.                                   | Next scene ID selected or save/exit signal returned.                                       |
+| Play puzzle scene      | Puzzle scene data, player choice (1 or 2)                              | Show the puzzle text and choices, validate the answer, reward score if correct, or reduce health if wrong, then move to the linked next scene.                                        | Updated score or health, next scene ID, or game over if lives reach zero.                  |
+| Play combat scene      | Combat scene data, player choice (1 or 2), player stats, random values | Show the enemy and choices, calculate player and enemy totals using attack power plus a random roll, compare results, apply score reward or health damage, and decide the next scene. | Combat result shown, stats updated, next scene selected, or game over if lives reach zero. |
+| Play item scene        | Item scene data, player choice (1 or 2)                                | Show the item scene, allow the player to take or leave the item, update inventory and player stats if collected, then move to the linked next scene.                                  | Item collected or left behind, updated inventory/stats, next scene selected.               |
+| Add item to inventory  | Item name, health bonus, attack bonus, score bonus                     | Add the item name to the inventory vector and apply all related stat changes through the player methods.                                                                              | Item added message and updated player stats shown.                                         |
+| Show inventory         | Current inventory data                                                 | Check whether the inventory is empty and display either the stored items or an empty inventory message.                                                                               | Inventory list or inventory is empty message shown.                                        |
+| Show player stats      | Player name, health, lives, attack power, score                        | Read the current player values and format them clearly for display.                                                                                                                   | Current player stats shown.                                                                |
+| Validate menu input    | User keyboard input                                                    | Check whether the input is numeric and within the valid range. If not, clear the error state and ask again.                                                                           | Valid menu choice accepted or error message shown.                                         |
+| Validate scene input   | User keyboard input (1, 2, S, E)                                       | Check whether the entered value is one of the allowed options for scene play. If invalid, re-prompt until a valid option is entered.                                                  | Valid scene choice accepted or error message shown.                                        |
+| Save game              | Current player data, current scene ID, inventory                       | Open the save file, write player name, scene, stats, score, and inventory contents in text format, then close the file safely.                                                        | Save confirmation or save error message shown.                                             |
+| Handle life loss       | Player health, player lives                                            | If health drops to zero, reduce lives by one. If lives remain, restore health for the new life; otherwise end the game.                                                               | Life lost message, health reset, or final game over message shown.                         |
+| Handle ending scene    | Current scene progression, final score                                 | Detect whether the player has reached one of the final scenes and display the final score before resetting or ending.                                                                 | Final score screen shown.                                                                  |
+| Exit to main menu      | Player input S during scene                                            | Save the game state, restore the previous scene ID so progress is preserved correctly, and return to the main menu.                                                                   | Save confirmation and main menu shown.                                                     |
+| Exit program           | User menu choice or E during scene                                     | End the menu loop or terminate the program safely.                                                                                                                                    | Goodbye message and program closed.                                                        |
 
 ## Algorithm:
 

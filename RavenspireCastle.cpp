@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 
+
 using namespace std;
 
 
@@ -459,7 +460,6 @@ public:
 /* Base class for all scene types.
    Derived classes only need to implement Play().
    Input and name replacement are handled here. */
-
 class Scene {
 protected:
     int scene_id_;
@@ -502,7 +502,7 @@ protected:
     string ReplacePlayerName(string text, Player* player) {
         size_t position = text.find("{player_name}");
 
-        if (position != string::npos) {
+        if (position < text.length()) {
             text.replace(position, 13, player->GetName());
         }
 
@@ -680,59 +680,58 @@ public:
         cout << "1. " << choice_1_ << "\n";
         cout << "2. " << choice_2_ << "\n";
 
-    choice = GetValidChoice(1, 2);
+        choice = GetValidChoice(1, 2);
 
-
-    if (choice == -2 || choice == -3) {
-        next_scene_id = choice;
-    }
-    else {
-        if (choice == 1) {
-            cout << "You chose: " << choice_1_ << "\n";
+        if (choice == -2 || choice == -3) {
+            next_scene_id = choice;
         }
         else {
-            cout << "You chose: " << choice_2_ << "\n";
-        }
+            if (choice == 1) {
+                cout << "You chose: " << choice_1_ << "\n";
+            }
+            else {
+                cout << "You chose: " << choice_2_ << "\n";
+            }
 
-        player_roll = rand() % 6 + 1;
-        enemy_roll = rand() % 6 + 1;
+            player_roll = rand() % 6 + 1;
+            enemy_roll = rand() % 6 + 1;
 
-        player_total = player->GetAttackPower() + player_roll;
-        enemy_total = enemy_power_ + enemy_roll;
+            player_total = player->GetAttackPower() + player_roll;
+            enemy_total = enemy_power_ + enemy_roll;
 
-        cout << player->GetName() << " total: " << player_total << "\n";
-        cout << enemy_name_ << " total: " << enemy_total << "\n";
+            cout << player->GetName() << " total: " << player_total << "\n";
+            cout << enemy_name_ << " total: " << enemy_total << "\n";
 
-        if (player_total >= enemy_total) {
-            cout << "You defeated " << enemy_name_ << ".\n";
-            player->AddScore(10);
-            cout << "Score is now: " << player->GetScore() << "\n";
-            next_scene_id = next_scene_1_;
-        }
-        else {
-            cout << "You were hit by " << enemy_name_ << ". You lose " << enemy_damage_ << " health.\n";
-            player->ChangeHealth(-enemy_damage_);
-            cout << "Health is now: " << player->GetHealth() << "\n";
-            next_scene_id = next_scene_2_;
+            if (player_total >= enemy_total) {
+                cout << "You defeated " << enemy_name_ << ".\n";
+                player->AddScore(10);
+                cout << "Score is now: " << player->GetScore() << "\n";
+                next_scene_id = next_scene_1_;
+            }
+            else {
+                cout << "You were hit by " << enemy_name_ << ". You lose " << enemy_damage_ << " health.\n";
+                player->ChangeHealth(-enemy_damage_);
+                cout << "Health is now: " << player->GetHealth() << "\n";
+                next_scene_id = next_scene_2_;
 
-            if (player->GetHealth() <= 0) {
-                player->LoseLife();
+                if (player->GetHealth() <= 0) {
+                    player->LoseLife();
 
-                if (player->GetLives() <= 0) {
-                    cout << "You have no lives left.\n";
-                    next_scene_id = -1;
-                }
-                else {
-                    cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
-                    player->ResetForNewLife();
-                    cout << "Health restored to: " << player->GetHealth() << "\n";
+                    if (player->GetLives() <= 0) {
+                        cout << "You have no lives left.\n";
+                        next_scene_id = -1;
+                    }
+                    else {
+                        cout << "You lost a life. Lives remaining: " << player->GetLives() << "\n";
+                        player->ResetForNewLife();
+                        cout << "Health restored to: " << player->GetHealth() << "\n";
+                    }
                 }
             }
         }
-    }
 
-    return next_scene_id;
-}
+        return next_scene_id;
+    }
 };
 
 class ItemScene : public Scene {
