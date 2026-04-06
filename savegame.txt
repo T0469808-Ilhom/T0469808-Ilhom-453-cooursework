@@ -1,0 +1,10 @@
+name=Ilhom
+scene=46
+health=74
+lives=3
+attack=14
+score=45
+items=3
+Bent Nail
+Bread
+Rusty Sword
